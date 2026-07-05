@@ -1,4 +1,8 @@
 C:\build\git\fantasy-game-toolkit\src\main\java\it\fantasytoolkit\core\model\Race.java
+C:\build\git\fantasy-game-toolkit\src\main\java\it\fantasytoolkit\core\pojo\GeneratedElementResult.java
+C:\build\git\fantasy-game-toolkit\src\main\java\it\fantasytoolkit\core\types\Seed.java
+C:\build\git\fantasy-game-toolkit\src\main\java\it\fantasytoolkit\core\types\SeedBuilder.java
 C:\build\git\fantasy-game-toolkit\src\main\java\it\fantasytoolkit\namegenerator\EnemyNameGeneratorTool.java
 C:\build\git\fantasy-game-toolkit\src\main\java\it\fantasytoolkit\namegenerator\HeroNameGeneratorTool.java
-C:\build\git\fantasy-game-toolkit\src\main\java\it\fantasytoolkit\namegenerator\NameGeneratorTool.java
+C:\build\git\fantasy-game-toolkit\src\main\java\it\fantasytoolkit\namegenerator\result\NameResult.java
+C:\build\git\fantasy-game-toolkit\src\main\java\it\fantasytoolkit\namegenerator\tool\NameGeneratorTool.java
