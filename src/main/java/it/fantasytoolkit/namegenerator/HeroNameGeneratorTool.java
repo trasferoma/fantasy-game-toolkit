@@ -1,5 +1,7 @@
 package it.fantasytoolkit.namegenerator;
 
+import it.fantasytoolkit.namegenerator.tool.NameGeneratorTool;
+
 public class HeroNameGeneratorTool {
 
     private static final String NAMES_FILE = "/namegenerator/heros_names.txt";

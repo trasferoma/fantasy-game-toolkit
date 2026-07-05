@@ -1,4 +1,4 @@
-package it.fantasytoolkit.namegenerator;
+package it.fantasytoolkit.namegenerator.tool;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,7 +14,7 @@ public class NameGeneratorTool {
     private final List<String> names = new ArrayList<>();
     private final Random random = new Random();
 
-    NameGeneratorTool(String namesFile) {
+    public NameGeneratorTool(String namesFile) {
         loadNames(namesFile);
     }
 

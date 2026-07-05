@@ -1,6 +1,7 @@
 package it.fantasytoolkit.namegenerator;
 
 import it.fantasytoolkit.core.model.Race;
+import it.fantasytoolkit.namegenerator.tool.NameGeneratorTool;
 
 public class EnemyNameGeneratorTool {
 
