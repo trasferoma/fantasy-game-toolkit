@@ -4,38 +4,35 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 public class NameGeneratorTool {
 
-    private final List<String> names = new ArrayList<>();
-    private final Random random = new Random();
+    private final List<String> names;
 
     public NameGeneratorTool(String namesFile) {
-        loadNames(namesFile);
+        this.names = loadNames(namesFile);
     }
 
-    public String generateName() {
+    public String pick(Random random) {
         if (names.isEmpty()) {
             throw new IllegalStateException("Name list not loaded correctly");
         }
         return names.get(random.nextInt(names.size()));
     }
 
-    private void loadNames(String resourcePath) {
+    private static List<String> loadNames(String resourcePath) {
         try (InputStream in = openResource(resourcePath);
                 BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String trimmed = line.trim();
-                if (!trimmed.isEmpty()) {
-                    names.add(trimmed);
-                }
-            }
-        } catch (IOException e) {
+            return reader.lines()
+                    .map(String::trim)
+                    .filter(line -> !line.isEmpty())
+                    .collect(Collectors.toList());
+        } catch (IOException | UncheckedIOException e) {
             throw new IllegalStateException("Unable to load names file: " + resourcePath, e);
         }
     }

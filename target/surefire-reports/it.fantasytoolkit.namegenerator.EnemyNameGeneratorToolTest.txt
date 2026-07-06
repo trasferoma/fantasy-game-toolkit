@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: it.fantasytoolkit.namegenerator.EnemyNameGeneratorToolTest
 -------------------------------------------------------------------------------
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.085 s -- in it.fantasytoolkit.namegenerator.EnemyNameGeneratorToolTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.205 s -- in it.fantasytoolkit.namegenerator.EnemyNameGeneratorToolTest

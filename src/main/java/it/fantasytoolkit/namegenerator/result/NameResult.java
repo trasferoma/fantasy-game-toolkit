@@ -3,24 +3,31 @@ package it.fantasytoolkit.namegenerator.result;
 import it.fantasytoolkit.core.pojo.GeneratedElementResult;
 import it.fantasytoolkit.core.types.Seed;
 
-public class NameResult extends GeneratedElementResult {
-    private String name;
+public record NameResult(String name, Seed seed) implements GeneratedElementResult {
 
-    public NameResult setName(String name, Seed seed) {
-        this.name = name;
-        return this;
+    public static Builder builder() {
+        return new Builder();
     }
 
-    public String getName() {
-        return name;
-    }
+    public static final class Builder {
+        private String name;
+        private Seed seed;
 
-    public NameResult setName(String name) {
-        this.name = name;
-        return this;
-    }
+        private Builder() {
+        }
 
-    public String toString() {
-        return "NameResult [name=" + name + ", seed=" + getSeed() + "]";
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder seed(Seed seed) {
+            this.seed = seed;
+            return this;
+        }
+
+        public NameResult build() {
+            return new NameResult(name, seed);
+        }
     }
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="it.fantasytoolkit.core.types.SeedBuilderTest" time="0.091" tests="2" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="it.fantasytoolkit.core.types.SeedBuilderTest" time="0.792" tests="2" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -15,9 +15,8 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="IT"/>
     <property name="sun.boot.library.path" value="C:\Users\fabio.dearcangelis\.jdks\ms-21.0.9\bin"/>
-    <property name="sun.java.command" value="C:\Users\fabio.dearcangelis\AppData\Local\Temp\surefire12745245326823157115\surefirebooter-20260706000321251_3.jar C:\Users\fabio.dearcangelis\AppData\Local\Temp\surefire12745245326823157115 2026-07-06T00-03-21_158-jvmRun1 surefire-20260706000321251_1tmp surefire_0-20260706000321251_2tmp"/>
+    <property name="sun.java.command" value="C:\Users\fabio.dearcangelis\AppData\Local\Temp\surefire15683705578229783542\surefirebooter-20260706092221400_3.jar C:\Users\fabio.dearcangelis\AppData\Local\Temp\surefire15683705578229783542 2026-07-06T09-22-17_950-jvmRun1 surefire-20260706092221400_1tmp surefire_0-20260706092221400_2tmp"/>
     <property name="jdk.debug" value="release"/>
-    <property name="test" value="SeedTest,SeedBuilderTest"/>
     <property name="surefire.test.class.path" value="C:\build\git\fantasy-game-toolkit\target\test-classes;C:\build\git\fantasy-game-toolkit\target\classes;C:\Users\fabio.dearcangelis\.m2\repository\org\projectlombok\lombok\1.18.38\lombok-1.18.38.jar;C:\Users\fabio.dearcangelis\.m2\repository\org\junit\jupiter\junit-jupiter\5.11.0\junit-jupiter-5.11.0.jar;C:\Users\fabio.dearcangelis\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.11.0\junit-jupiter-api-5.11.0.jar;C:\Users\fabio.dearcangelis\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\fabio.dearcangelis\.m2\repository\org\junit\platform\junit-platform-commons\1.11.0\junit-platform-commons-1.11.0.jar;C:\Users\fabio.dearcangelis\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\fabio.dearcangelis\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.11.0\junit-jupiter-params-5.11.0.jar;C:\Users\fabio.dearcangelis\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.11.0\junit-jupiter-engine-5.11.0.jar;C:\Users\fabio.dearcangelis\.m2\repository\org\junit\platform\junit-platform-engine\1.11.0\junit-platform-engine-1.11.0.jar;C:\Users\fabio.dearcangelis\.m2\repository\org\assertj\assertj-core\3.27.7\assertj-core-3.27.7.jar;C:\Users\fabio.dearcangelis\.m2\repository\net\bytebuddy\byte-buddy\1.18.3\byte-buddy-1.18.3.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
     <property name="user.home" value="C:\Users\fabio.dearcangelis"/>
@@ -31,7 +30,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
-    <property name="surefire.real.class.path" value="C:\Users\fabio.dearcangelis\AppData\Local\Temp\surefire12745245326823157115\surefirebooter-20260706000321251_3.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\fabio.dearcangelis\AppData\Local\Temp\surefire15683705578229783542\surefirebooter-20260706092221400_3.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="21.0.9+10-LTS"/>
@@ -60,6 +59,6 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="repeatedBuildsAreNotAlwaysIdentical" classname="it.fantasytoolkit.core.types.SeedBuilderTest" time="0.062"/>
-  <testcase name="buildReturnsUsableSeed" classname="it.fantasytoolkit.core.types.SeedBuilderTest" time="0.003"/>
+  <testcase name="repeatedBuildsAreNotAlwaysIdentical" classname="it.fantasytoolkit.core.types.SeedBuilderTest" time="0.587"/>
+  <testcase name="buildReturnsUsableSeed" classname="it.fantasytoolkit.core.types.SeedBuilderTest" time="0.029"/>
 </testsuite>

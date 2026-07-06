@@ -22,7 +22,7 @@ class SeedTest {
     void toStringReturnsDecimalRepresentation() {
         Seed seed = new Seed(42L);
 
-        assertThat(seed.value()).isEqualTo(42);
+        assertThat(seed.toString()).isEqualTo("42");
     }
 
     @Test

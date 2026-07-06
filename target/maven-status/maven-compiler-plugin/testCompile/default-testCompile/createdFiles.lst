@@ -1,5 +1,7 @@
 it\fantasytoolkit\core\types\SeedTest.class
 it\fantasytoolkit\namegenerator\AbstractNameGeneratorTest.class
-it\fantasytoolkit\namegenerator\HeroNameGeneratorToolTest.class
+it\fantasytoolkit\namegenerator\tool\NameGeneratorToolTest.class
 it\fantasytoolkit\namegenerator\EnemyNameGeneratorToolTest.class
+it\fantasytoolkit\namegenerator\result\NameResultTest.class
+it\fantasytoolkit\namegenerator\HeroNameGeneratorToolTest.class
 it\fantasytoolkit\core\types\SeedBuilderTest.class
