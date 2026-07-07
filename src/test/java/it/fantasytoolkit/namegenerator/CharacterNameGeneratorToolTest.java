@@ -13,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class CharacterNameGeneratorToolTest {
     static FileReader reader;
+
     @BeforeAll
     public static void setup() {
         reader = new FileReader();
@@ -65,7 +66,9 @@ public class CharacterNameGeneratorToolTest {
     private void assertGeneratedNameIsKnown(Race race) {
         Set<String> names = reader.readLines(race.getNamesFile());
 
-        NameResult result = CharacterNameGeneratorTool.race(race).generate();
+        NameResult result = CharacterNameGeneratorTool
+                .race(race)
+                .generate();
 
         assertThat(result.name())
                 .as("Generated name must not be blank")
