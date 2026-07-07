@@ -25,3 +25,4 @@
 /target/test-classes/it/fantasytoolkit/namegenerator/tool/NameGeneratorToolTest.class
 /target/test-classes/it/fantasytoolkit/namegenerator/AbstractNameGeneratorTest.class
 /target/test-classes/it/fantasytoolkit/namegenerator/CharacterNameGeneratorToolTest.class
+/target/test-classes/tools/FileReader.class

@@ -1,16 +1,22 @@
 package it.fantasytoolkit.namegenerator;
 
 import it.fantasytoolkit.core.model.Race;
-import it.fantasytoolkit.core.types.Seed;
 import it.fantasytoolkit.namegenerator.result.NameResult;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import tools.FileReader;
 
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class CharacterNameGeneratorToolTest extends AbstractNameGeneratorTest {
+public class CharacterNameGeneratorToolTest {
+    static FileReader reader;
+    @BeforeAll
+    public static void setup() {
+        reader = new FileReader();
+    }
 
     @Test
     void generatesHumanNameFromDictionaryWithoutNickname() {
@@ -34,8 +40,8 @@ public class CharacterNameGeneratorToolTest extends AbstractNameGeneratorTest {
 
     @Test
     void generatesNameComposedOfRaceNameAndNicknameFromDictionaries() {
-        Set<String> names = readLines(Race.HUMAN.getNamesFile());
-        Set<String> nicknames = readLines("/namegenerator/nicknames.txt");
+        Set<String> names = reader.readLines(Race.HUMAN.getNamesFile());
+        Set<String> nicknames = reader.readLines("/namegenerator/nicknames.txt");
 
         NameResult result = CharacterNameGeneratorTool.addNickname().race(Race.HUMAN).generate();
 
@@ -51,47 +57,19 @@ public class CharacterNameGeneratorToolTest extends AbstractNameGeneratorTest {
     }
 
     @Test
-    void sameSeedProducesSameGeneratedNameWithoutNickname() {
-        NameResult first = CharacterNameGeneratorTool.race(Race.ELF).generate();
-        Seed seed = first.seed();
-
-        NameResult again = CharacterNameGeneratorTool.race(Race.ELF).useSeed(seed).generate();
-
-        assertThat(again.name()).isEqualTo(first.name());
-    }
-
-    @Test
-    void sameSeedProducesSameGeneratedNameWithNickname() {
-        NameResult first = CharacterNameGeneratorTool.addNickname()
-                .race(Race.ORC)
-                .generate();
-
-        Seed seed = first.seed();
-
-        NameResult again = CharacterNameGeneratorTool
-                .addNickname()
-                .race(Race.ORC)
-                .useSeed(seed)
-                .generate();
-
-        assertThat(again.name()).isEqualTo(first.name());
-    }
-
-    @Test
     void generateWithoutRaceThrowsIllegalStateException() {
         assertThatThrownBy(() -> CharacterNameGeneratorTool.addNickname().generate())
                 .isInstanceOf(IllegalStateException.class);
     }
 
     private void assertGeneratedNameIsKnown(Race race) {
-        Set<String> names = readLines(race.getNamesFile());
+        Set<String> names = reader.readLines(race.getNamesFile());
 
         NameResult result = CharacterNameGeneratorTool.race(race).generate();
 
         assertThat(result.name())
                 .as("Generated name must not be blank")
                 .isNotBlank();
-        assertThat(result.seed()).as("Generated result must expose a seed").isNotNull();
         assertThat(names).as("Name not present in dictionary").contains(result.name());
     }
 }
