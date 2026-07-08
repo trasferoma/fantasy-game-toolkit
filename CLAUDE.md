@@ -30,12 +30,11 @@ Toolkit per giochi fantasy, organizzato in **moduli logici (package)** dentro un
 - **`namegenerator`** — generazione di nomi a partire da liste di parole caricate dal classpath.
   - `NameGeneratorTool` (costruttore pubblico): motore base. Carica un file dal classpath (una parola per riga, UTF-8, righe vuote scartate). L'estrazione avviene con `pick(Random)`, **unico punto di selezione**, con un `Random` fornito dall'esterno (quindi seminabile). Se la risorsa non esiste (costruttore) o la lista è vuota (`pick`) lancia `IllegalStateException` con messaggio diagnostico. È il mattone riusato dai generatori pubblici.
   - `namegenerator.result.NameResult` è un `record NameResult(String name, Seed seed) implements GeneratedElementResult`, immutabile, con `Builder` interno fluente (`NameResult.builder().name(...).seed(...).build()`). È il tipo di ritorno del generatore pubblico.
-  - `CharacterNameGeneratorTool`: **unico** generatore pubblico, con fluent interface. Entry-point statici `race(Race)` e `addNickname()` aprono un `Builder` interno; `race(Race)`/`addNickname()`/`useSeed(Seed)` esistono come metodi d'istanza (ritornano `this`); `generate()` chiude la catena e produce il `NameResult`, **sempre senza parametri**: usa il seed impostato con `useSeed(Seed)` se presente, altrimenti ne crea uno casuale con `SeedBuilder`. Il nome è quello di razza (lista scelta dalla `Race`); con `addNickname()` diventa la stringa composta `name + " " + nickname`, dove il nickname arriva da `nicknames.txt`. `generate()` senza `race()` lancia `IllegalStateException`.
+  - `CharacterNameGeneratorTool`: **unico** generatore pubblico, con fluent interface. L'entry-point statico `building()` "stacca" un `Builder` interno neutro; `race(Race)` e `addNickname()` sono metodi d'istanza (ritornano `this`) invocabili in qualsiasi ordine; `generate()` chiude la catena e produce il `NameResult`. Il nome è quello di razza (lista scelta dalla `Race`); con `addNickname()` diventa la stringa composta `name + " " + nickname`, dove il nickname arriva da `nicknames.txt`. `generate()` senza `race()` lancia `IllegalStateException`.
 
 ```java
-CharacterNameGeneratorTool.addNickname().race(Race.HUMAN).generate();              // nome + nickname, seed casuale
-CharacterNameGeneratorTool.race(Race.ORC).generate();                              // solo nome di razza, seed casuale
-CharacterNameGeneratorTool.race(Race.ORC).useSeed(seed).generate();                // riproducibile
+CharacterNameGeneratorTool.building().addNickname().race(Race.HUMAN).generate();   // nome + nickname
+CharacterNameGeneratorTool.building().race(Race.ORC).generate();                   // solo nome di razza
 ```
 
 Non ci sono database né configurazione esterna: le liste `.txt` sono l'unica origine dati. Aggiungere un nome = aggiungere una riga al file corrispondente.

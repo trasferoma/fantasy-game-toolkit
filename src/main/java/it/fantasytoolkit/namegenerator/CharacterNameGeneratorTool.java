@@ -13,12 +13,8 @@ public final class CharacterNameGeneratorTool {
     private CharacterNameGeneratorTool() {
     }
 
-    public static Builder race(Race race) {
-        return new Builder().race(race);
-    }
-
-    public static Builder addNickname() {
-        return new Builder().addNickname();
+    public static Builder building() {
+        return new Builder();
     }
 
     public static final class Builder {

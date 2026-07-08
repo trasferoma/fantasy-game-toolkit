@@ -45,6 +45,7 @@ public class CharacterNameGeneratorToolTest {
         Set<String> nicknames = reader.readLines("/namegenerator/nicknames.txt");
 
         NameResult result = CharacterNameGeneratorTool
+                .building()
                 .addNickname()
                 .race(Race.HUMAN)
                 .generate();
@@ -62,7 +63,7 @@ public class CharacterNameGeneratorToolTest {
 
     @Test
     void generateWithoutRaceThrowsIllegalStateException() {
-        assertThatThrownBy(() -> CharacterNameGeneratorTool.addNickname().generate())
+        assertThatThrownBy(() -> CharacterNameGeneratorTool.building().addNickname().generate())
                 .isInstanceOf(IllegalStateException.class);
     }
 
@@ -70,6 +71,7 @@ public class CharacterNameGeneratorToolTest {
         Set<String> names = reader.readLines(race.getNamesFile());
 
         NameResult result = CharacterNameGeneratorTool
+                .building()
                 .race(race)
                 .generate();
 

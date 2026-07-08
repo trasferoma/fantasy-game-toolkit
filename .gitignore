@@ -43,3 +43,9 @@
 /target/surefire-reports/TEST-it.fantasytoolkit.namegenerator.result.NameResultTest.xml
 /target/surefire-reports/TEST-it.fantasytoolkit.namegenerator.tool.NameGeneratorToolTest.xml
 /target/test-classes/it/fantasytoolkit/jewelgenerator/JewelGeneratorToolTest.class
+/target/classes/it/fantasytoolkitcore/core/model/RarityTable$Builder.class
+/target/classes/it/fantasytoolkitcore/core/model/RarityTable$Entry.class
+/target/classes/it/fantasytoolkitcore/core/model/RarityTable.class
+/target/surefire-reports/it.fantasytoolkitcore.core.model.RarityTableTest.txt
+/target/surefire-reports/TEST-it.fantasytoolkitcore.core.model.RarityTableTest.xml
+/target/test-classes/it/fantasytoolkitcore/core/model/RarityTableTest.class
