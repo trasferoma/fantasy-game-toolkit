@@ -1,4 +1,4 @@
-package it.fantasytoolkit.core.pojo;
+package it.fantasytoolkitcore.core.pojo;
 
 
 public interface GeneratedElementResult {

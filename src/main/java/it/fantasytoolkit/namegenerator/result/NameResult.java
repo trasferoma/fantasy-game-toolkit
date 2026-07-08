@@ -1,6 +1,6 @@
 package it.fantasytoolkit.namegenerator.result;
 
-import it.fantasytoolkit.core.pojo.GeneratedElementResult;
+import it.fantasytoolkitcore.core.pojo.GeneratedElementResult;
 
 public record NameResult(String name) implements GeneratedElementResult {
 

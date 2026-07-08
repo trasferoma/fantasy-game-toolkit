@@ -1,4 +1,4 @@
-package it.fantasytoolkit.core.model;
+package it.fantasytoolkitcore.core.model;
 
 import lombok.Getter;
 

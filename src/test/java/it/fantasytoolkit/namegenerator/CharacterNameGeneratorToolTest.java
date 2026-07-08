@@ -1,6 +1,6 @@
 package it.fantasytoolkit.namegenerator;
 
-import it.fantasytoolkit.core.model.Race;
+import it.fantasytoolkitcore.core.model.Race;
 import it.fantasytoolkit.namegenerator.result.NameResult;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,10 @@ public class CharacterNameGeneratorToolTest {
         Set<String> names = reader.readLines(Race.HUMAN.getNamesFile());
         Set<String> nicknames = reader.readLines("/namegenerator/nicknames.txt");
 
-        NameResult result = CharacterNameGeneratorTool.addNickname().race(Race.HUMAN).generate();
+        NameResult result = CharacterNameGeneratorTool
+                .addNickname()
+                .race(Race.HUMAN)
+                .generate();
 
         assertThat(result.name())
                 .as("Generated name must not be blank")

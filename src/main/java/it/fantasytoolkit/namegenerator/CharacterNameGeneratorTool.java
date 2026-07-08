@@ -2,7 +2,7 @@ package it.fantasytoolkit.namegenerator;
 
 import java.util.Random;
 
-import it.fantasytoolkit.core.model.Race;
+import it.fantasytoolkitcore.core.model.Race;
 import it.fantasytoolkit.namegenerator.result.NameResult;
 import it.fantasytoolkit.namegenerator.tool.NameGeneratorTool;
 
