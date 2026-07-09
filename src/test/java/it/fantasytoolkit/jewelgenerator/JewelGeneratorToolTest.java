@@ -6,6 +6,8 @@ import it.fantasytoolkitcore.core.model.RarityTable;
 import it.fantasytoolkit.jewelgenerator.result.JewelResult;
 import org.junit.jupiter.api.Test;
 
+import java.util.stream.Stream;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -141,6 +143,66 @@ public class JewelGeneratorToolTest {
                 .rarityTable(table)
                 .generate())
                 .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void generatesRandomJewelTypeWithoutRarity() {
+        assertThatThrownBy(() -> JewelGeneratorTool.building()
+                .jewel(Jewel.RING)
+                .generate())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("One of rarity, maxRarity or rarityTable must be set before generating a jewel");
+    }
+
+    @Test
+    void generatesRandomJewelTypeWithoutJewel() {
+        assertThatThrownBy(() -> JewelGeneratorTool.building()
+                .maxRarity(Rarity.RARE)
+                .generate())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Jewel must be set before generating a jewel");
+    }
+
+    @Test
+    void generatesRandomJewelType() {
+        JewelResult result = JewelGeneratorTool.building()
+                .randomJewel()
+                .rarity(Rarity.RARE)
+                .generate();
+
+        Jewel jewel = result.jewel();
+
+        boolean found = Stream.of(Jewel.values()).
+                anyMatch(j -> j == jewel);
+
+        assertThat(found).isTrue();
+    }
+
+    @Test
+    void generatesJewel() {
+        JewelResult result = JewelGeneratorTool.building()
+                .jewel(Jewel.RING)
+                .rarity(Rarity.RARE)
+                .generate();
+
+        System.out.println(result);
+    }
+
+    @Test
+    void generatesJewelWithRarityTable() {
+        RarityTable table = RarityTable.builder()
+                .entry(Rarity.COMMON, 60)
+                .entry(Rarity.UNCOMMON, 20)
+                .entry(Rarity.RARE, 19)
+                .entry(Rarity.LEGENDARY, 1)
+                .build();
+
+        JewelResult result = JewelGeneratorTool.building()
+                .jewel(Jewel.RING)
+                .rarityTable(table)
+                .generate();
+
+        System.out.println(result);
     }
 
     private void assertGeneratedJewelMatches(Jewel jewel, Rarity rarity) {

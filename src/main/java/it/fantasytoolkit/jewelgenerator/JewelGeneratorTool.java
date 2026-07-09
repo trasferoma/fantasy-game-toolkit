@@ -19,6 +19,7 @@ public final class JewelGeneratorTool {
     public static final class Builder {
 
         private Jewel jewel;
+        private boolean randomJewel;
         private Rarity rarity;
         private Rarity maxRarity;
         private RarityTable rarityTable;
@@ -28,6 +29,11 @@ public final class JewelGeneratorTool {
 
         public Builder jewel(Jewel jewel) {
             this.jewel = jewel;
+            return this;
+        }
+
+        public Builder randomJewel() {
+            this.randomJewel = true;
             return this;
         }
 
@@ -47,9 +53,9 @@ public final class JewelGeneratorTool {
         }
 
         public JewelResult generate() {
-            if (jewel == null) {
-                throw new IllegalStateException("Jewel must be set before generating a jewel");
-            }
+            Random random = new Random();
+            Jewel resolvedJewel = resolveJewel(random);
+
             int raritySourceCount = countRaritySources();
             if (raritySourceCount > 1) {
                 throw new IllegalStateException("Only one of rarity, maxRarity or rarityTable can be used together");
@@ -59,12 +65,23 @@ public final class JewelGeneratorTool {
                         "One of rarity, maxRarity or rarityTable must be set before generating a jewel");
             }
 
-            Rarity resolvedRarity = resolveRarity(new Random());
+            Rarity resolvedRarity = resolveRarity(random);
 
             return JewelResult.builder()
-                    .jewel(jewel)
+                    .jewel(resolvedJewel)
                     .rarity(resolvedRarity)
                     .build();
+        }
+
+        private Jewel resolveJewel(Random random) {
+            if (randomJewel) {
+                Jewel[] jewels = Jewel.values();
+                return jewels[random.nextInt(jewels.length)];
+            }
+            if (jewel == null) {
+                throw new IllegalStateException("Jewel must be set before generating a jewel");
+            }
+            return jewel;
         }
 
         private int countRaritySources() {
