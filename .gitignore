@@ -49,3 +49,16 @@
 /target/surefire-reports/it.fantasytoolkitcore.core.model.RarityTableTest.txt
 /target/surefire-reports/TEST-it.fantasytoolkitcore.core.model.RarityTableTest.xml
 /target/test-classes/it/fantasytoolkitcore/core/model/RarityTableTest.class
+/target/classes/it/fantasytoolkit/buffdebuffgenerator/result/BuffDebuffResult.class
+/target/classes/it/fantasytoolkit/buffdebuffgenerator/result/BuffElement.class
+/target/classes/it/fantasytoolkit/buffdebuffgenerator/result/DebuffElement.class
+/target/classes/it/fantasytoolkit/buffdebuffgenerator/result/StatusEffect.class
+/target/classes/it/fantasytoolkit/buffdebuffgenerator/rules/BuffCombination.class
+/target/classes/it/fantasytoolkit/buffdebuffgenerator/rules/BuffDebuffRules.class
+/target/classes/it/fantasytoolkit/buffdebuffgenerator/rules/DefaultBuffDebuffRules.class
+/target/classes/it/fantasytoolkit/buffdebuffgenerator/BuffDebuffGeneratorTool$Builder.class
+/target/classes/it/fantasytoolkit/buffdebuffgenerator/BuffDebuffGeneratorTool.class
+/target/classes/it/fantasytoolkitcore/core/model/Characteristic.class
+/target/surefire-reports/it.fantasytoolkit.buffdebuffgenerator.BuffDebuffGeneratorToolTest.txt
+/target/surefire-reports/TEST-it.fantasytoolkit.buffdebuffgenerator.BuffDebuffGeneratorToolTest.xml
+/target/test-classes/it/fantasytoolkit/buffdebuffgenerator/BuffDebuffGeneratorToolTest.class
