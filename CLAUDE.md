@@ -20,43 +20,58 @@ Test: JUnit Jupiter (JUnit 5) + AssertJ (`assertThat(...)`). Surefire con `useMo
 
 ## Architettura
 
-Toolkit per giochi fantasy, organizzato in **moduli logici (package)** dentro un singolo modulo Maven:
+Toolkit per giochi fantasy, organizzato in **moduli logici (package)** dentro un singolo modulo Maven. Ogni generatore pubblico è un `*Tool` con costruttore privato e un entry-point statico `building()` che stacca un `Builder` interno fluente; la catena si chiude sempre con `generate()`, che restituisce un result immutabile (record). Ogni result implementa `GeneratedElementResult`, oggi **marker interface vuota** (`core.pojo.GeneratedElementResult`): un contratto-tag comune tra i result, senza metodi.
 
-- **`core`** — modello di dominio e tipi condivisi.
-  - `core.model.Race` è un enum (`HUMAN`/`ELF`/`ORC`/`UNDEAD`) che mappa ogni razza al proprio file di nomi (`namesFile`) e a un `symbol` char. È il punto di estensione per nuove razze: nuova costante + relativo file di risorse.
-  - `core.types.Seed` è un `record Seed(long value)`: dato puro, nessuna conversione. `toString()` restituisce il valore come numero decimale (`Long.toString(value)`), così un seed è leggibile e copiabile.
-  - `core.types.SeedBuilder` genera **solo** seed casuali (`SeedBuilder.newSeed().build()`), nascondendo `ThreadLocalRandom`. Un seed noto (per riprodurre) si costruisce con `new Seed(long)`, non dal builder.
-  - `core.pojo.GeneratedElementResult` è un'**interfaccia** con il solo contratto `Seed seed()`: contratto comune dei risultati, condiviso dai tool futuri senza vincolare l'ereditarietà.
-- **`namegenerator`** — generazione di nomi a partire da liste di parole caricate dal classpath.
-  - `NameGeneratorTool` (costruttore pubblico): motore base. Carica un file dal classpath (una parola per riga, UTF-8, righe vuote scartate). L'estrazione avviene con `pick(Random)`, **unico punto di selezione**, con un `Random` fornito dall'esterno (quindi seminabile). Se la risorsa non esiste (costruttore) o la lista è vuota (`pick`) lancia `IllegalStateException` con messaggio diagnostico. È il mattone riusato dai generatori pubblici.
-  - `namegenerator.result.NameResult` è un `record NameResult(String name, Seed seed) implements GeneratedElementResult`, immutabile, con `Builder` interno fluente (`NameResult.builder().name(...).seed(...).build()`). È il tipo di ritorno del generatore pubblico.
-  - `CharacterNameGeneratorTool`: **unico** generatore pubblico, con fluent interface. L'entry-point statico `building()` "stacca" un `Builder` interno neutro; `race(Race)` e `addNickname()` sono metodi d'istanza (ritornano `this`) invocabili in qualsiasi ordine; `generate()` chiude la catena e produce il `NameResult`. Il nome è quello di razza (lista scelta dalla `Race`); con `addNickname()` diventa la stringa composta `name + " " + nickname`, dove il nickname arriva da `nicknames.txt`. `generate()` senza `race()` lancia `IllegalStateException`.
+I `*Tool` usano internamente `new Random()`: la generazione è **casuale e non riproducibile** (nessun seme esposto).
+
+### `core` — modello di dominio e tipi condivisi
+
+Package `it.fantasytoolkitcore.core` (nota: distinto dal `groupId` `it.fantasytoolkit` e dal package dei tool).
+
+- `core.model.Race` — enum (`HUMAN`/`ELF`/`ORC`/`UNDEAD`), `@Getter` Lombok, mappa ogni razza al proprio file di nomi (`namesFile`) e a un `symbol` char. Punto di estensione per nuove razze: nuova costante + relativo file di risorse.
+- `core.model.Rarity` — enum ordinato dal meno al più raro: `COMMON`, `UNCOMMON`, `RARE`, `EPIC`, `LEGENDARY`. L'ordine (`ordinal()`) è semanticamente rilevante (vedi `maxRarity`).
+- `core.model.Jewel` — enum dei tipi di gioiello: `RING`, `NECKLACE`, `BRACELET`, `EARRING`.
+- `core.model.Characteristic` — enum delle caratteristiche di gioco: `STRENGTH`, `INTELLIGENCE`, `AGILITY`, `WISDOM`, `CHARISMA`, `RESISTANCE`, `STAMINA`, `LUCK`.
+- `core.model.RarityTable` — tabella di estrazione pesata delle rarità. Costruita con `RarityTable.builder().entry(rarity, weight)...build()`; `draw(Random)` restituisce una `Rarity` con probabilità proporzionale al peso. `build()` valida che i pesi siano positivi, le rarità uniche e la **somma dei pesi pari a 100**; altrimenti `IllegalStateException`. Immutabile (`List.copyOf`).
+- `core.pojo.GeneratedElementResult` — marker interface comune a tutti i result.
+
+### `namegenerator` — generazione di nomi da liste di parole del classpath
+
+- `namegenerator.tool.NameGeneratorTool` — motore base (costruttore pubblico che riceve il path del file). Carica un file dal classpath (una parola per riga, UTF-8, righe vuote scartate). L'estrazione avviene con `pick(Random)`, **unico punto di selezione**, con un `Random` fornito dall'esterno. Risorsa mancante o lista vuota → `IllegalStateException` con messaggio diagnostico. È il mattone riusato dal generatore pubblico.
+- `namegenerator.result.NameResult` — `record NameResult(String name) implements GeneratedElementResult`, con `Builder` interno fluente (`NameResult.builder().name(...).build()`).
+- `namegenerator.CharacterNameGeneratorTool` — generatore pubblico dei nomi. `building()` → `Builder`; `race(Race)` e `addNickname()` sono metodi fluenti invocabili in qualsiasi ordine; `generate()` produce il `NameResult`. Il nome è quello di razza (lista scelta dalla `Race`); con `addNickname()` diventa `name + " " + nickname`, con nickname da `nicknames.txt`. `generate()` senza `race()` → `IllegalStateException`.
 
 ```java
 CharacterNameGeneratorTool.building().addNickname().race(Race.HUMAN).generate();   // nome + nickname
 CharacterNameGeneratorTool.building().race(Race.ORC).generate();                   // solo nome di razza
 ```
 
-Non ci sono database né configurazione esterna: le liste `.txt` sono l'unica origine dati. Aggiungere un nome = aggiungere una riga al file corrispondente.
+### `jewelgenerator` — generazione di gioielli con rarità
 
-### Seed e riproducibilità (scelta architetturale centrale)
-
-I generatori ritornano un `NameResult` (nome + `Seed`), **non** una `String`. Il `Seed` è il **seme del PRNG**: dal suo `long` si inizializza `new Random(seed.value())`; non incorpora il valore selezionato.
-
-- **Due percorsi**: uno "casuale" (`generate()` senza `useSeed(...)` impostato crea un nuovo `Seed` con `SeedBuilder` e genera) e uno "da seed" (`useSeed(Seed).generate()` riproduce a partire da un `Seed` dato). Entrambi convergono nello stesso `generate()` → unico cammino di estrazione, zero duplicazione.
-- **Riproducibilità**: passando con `useSeed(...)` lo stesso `Seed` restituito da una generazione precedente si riottiene lo stesso `name`, **a parità di dizionari** (contenuto e ordine delle liste `.txt` invariati).
-- **Ordine di pesca fisso**: quando da un solo seed servono più estrazioni (con `addNickname()`: prima il nome di razza, poi il nickname) si usa **lo stesso** `Random` seminato e l'ordine è fisso e documentato. Senza nickname si esegue una sola estrazione.
+- `jewelgenerator.JewelGeneratorTool` — `building()` → `Builder` → `generate()` → `JewelResult`.
+  - **Tipo di gioiello**: `jewel(Jewel)` per uno fisso, oppure `randomJewel()` per uno casuale tra tutti i `Jewel.values()`. Nessuno dei due → `IllegalStateException`.
+  - **Rarità**: esattamente **una** tra `rarity(Rarity)` (rarità fissa), `maxRarity(Rarity)` (casuale fino a quel livello incluso, per `ordinal()`) e `rarityTable(RarityTable)` (estrazione pesata). Zero o più di una fonte → `IllegalStateException`.
+- `jewelgenerator.result.JewelResult` — `record JewelResult(Jewel jewel, Rarity rarity) implements GeneratedElementResult`, con `Builder` interno.
 
 ```java
-NameResult first = CharacterNameGeneratorTool.race(Race.ORC).generate();
-Seed seed = first.seed();
-NameResult again = CharacterNameGeneratorTool.race(Race.ORC).useSeed(seed).generate();
-assert again.name().equals(first.name());   // a dizionari invariati
+JewelGeneratorTool.building().jewel(Jewel.RING).rarity(Rarity.EPIC).generate();
+JewelGeneratorTool.building().randomJewel().maxRarity(Rarity.RARE).generate();
+JewelGeneratorTool.building().jewel(Jewel.NECKLACE).rarityTable(table).generate();
 ```
+
+### `buffdebuffgenerator` — generazione di buff/debuff per rarità
+
+- `buffdebuffgenerator.BuffDebuffGeneratorTool` — `building().rarity(Rarity)...generate()` → `BuffDebuffResult`. `rarity(...)` è obbligatoria (altrimenti `IllegalStateException`); `rules(BuffDebuffRules)` è opzionale e di default usa `DefaultBuffDebuffRules`.
+  - La rarità seleziona la lista di `BuffCombination` ammesse; se ne pesca una a caso. Ogni combinazione definisce `count` (quanti buff) e l'intervallo `[minValue, maxValue]` dei valori. Le caratteristiche vengono mescolate e se ne prendono le prime `count`, ciascuna con un valore casuale nell'intervallo.
+  - **Stato attuale**: i **debuff non sono ancora generati** — `debuffs` è sempre `List.of()`. La struttura per estenderli esiste (`DebuffElement`, `StatusEffect`), ma la logica di produzione va ancora scritta.
+- `buffdebuffgenerator.result` — `BuffDebuffResult(List<BuffElement> buffs, List<DebuffElement> debuffs)`; `BuffElement`/`DebuffElement` sono record `(Characteristic, int value)` che implementano l'interfaccia comune `StatusEffect`.
+- `buffdebuffgenerator.rules` — `BuffDebuffRules` (interfaccia: `combinationsFor(Rarity)`), `DefaultBuffDebuffRules` (mappa `Rarity` → combinazioni, `EnumMap`), `BuffCombination(int count, int minValue, int maxValue)`. Le regole sono un **punto di estensione**: passando una `BuffDebuffRules` custom si cambiano combinazioni e range senza toccare il tool.
+
+Non ci sono database né configurazione esterna: le liste `.txt` sono l'unica origine dati per i nomi. Aggiungere un nome = aggiungere una riga al file corrispondente.
 
 ## Convenzioni del progetto
 
 - **Codice in inglese** (classi, metodi, variabili, messaggi). Anche i **nomi dei file di risorse sono in inglese** e vanno mantenuti stabili così come sono: `humans_names.txt`, `elves_names.txt`, `orks_names.txt`, `undeads_names.txt`, `nicknames.txt`.
 - **Risorse**: tutte le liste stanno in `src/main/resources/namegenerator/` e si caricano dalla **radice del classpath** con path assoluto `/namegenerator/<file>.txt`. Copia unica in `main`: i test le leggono dal classpath di test (che include `main/resources`), quindi **non** duplicare i file sotto `src/test/resources`.
-- **Package** `it.fantasytoolkit` (coerente con `groupId`). I `*Tool` con soli metodi statici hanno costruttore privato per impedirne l'istanziazione.
-- I test verificano che il nome generato appartenga effettivamente al dizionario sorgente, rileggendo il file di parole in modo indipendente (`AbstractNameGeneratorTest.readLines`).
+- **Package**: i tool stanno sotto `it.fantasytoolkit.*` (coerente con `groupId`), mentre il modello di dominio sta sotto `it.fantasytoolkitcore.core.*`. I `*Tool` hanno costruttore privato ed entry-point statico `building()`.
+- I test verificano che il nome generato appartenga effettivamente al dizionario sorgente, rileggendo il file di parole in modo indipendente con l'helper di test `tools.FileReader.readLines(path)` (restituisce un `Set<String>`).
