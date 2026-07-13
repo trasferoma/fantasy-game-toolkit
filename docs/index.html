@@ -293,6 +293,8 @@
       <h4>I generatori</h4>
       <a href="#nomi">Nomi di personaggio</a>
       <a href="#gioielli">Gioielli</a>
+      <a href="#armi">Armi</a>
+      <a href="#armature">Armature</a>
       <a href="#buffdebuff">Buff &amp; Debuff</a>
       <h4>Riferimento</h4>
       <a href="#estendere">Estendere il toolkit</a>
@@ -307,8 +309,8 @@
       <h1>Generatori per il tuo gioco fantasy, in una riga</h1>
       <p class="lead">
         <strong>fantasy-game-toolkit</strong> è una libreria Java di piccoli generatori — nomi di
-        personaggio, gioielli, buff e debuff — pensati per un'unica cosa: darti un risultato pronto
-        con <em>una sola catena di chiamate</em>.
+        personaggio, gioielli, armi, armature, buff e debuff — pensati per un'unica cosa: darti un
+        risultato pronto con <em>una sola catena di chiamate</em>.
       </p>
       <p>
         Non c'è configurazione, non ci sono file da preparare, non c'è stato da gestire. Ogni
@@ -331,6 +333,16 @@
           <h3>💍 Gioielli</h3>
           <p>Tipo di gioiello, rarità e bonus, con la fonte di rarità che preferisci.</p>
           <a class="more" href="#gioielli">Vai al generatore →</a>
+        </div>
+        <div class="card">
+          <h3>⚔️ Armi</h3>
+          <p>Tipo d'arma, rarità e bonus — stessa sintassi dei gioielli.</p>
+          <a class="more" href="#armi">Vai al generatore →</a>
+        </div>
+        <div class="card">
+          <h3>🛡️ Armature</h3>
+          <p>Tipo d'armatura, rarità e bonus, con o senza status effect.</p>
+          <a class="more" href="#armature">Vai al generatore →</a>
         </div>
         <div class="card">
           <h3>✨ Buff &amp; Debuff</h3>
@@ -396,6 +408,8 @@
             <tr><td><code>Race</code></td><td>HUMAN, ELF, ORC, UNDEAD</td><td>Ogni razza ha la propria lista di nomi.</td></tr>
             <tr><td><code>Rarity</code></td><td>COMMON, UNCOMMON, RARE, EPIC, LEGENDARY</td><td><strong>Ordine significativo</strong> (dal più comune al più raro).</td></tr>
             <tr><td><code>Jewel</code></td><td>RING, NECKLACE, BRACELET, EARRING</td><td>Tipi di gioiello.</td></tr>
+            <tr><td><code>Weapon</code></td><td>SWORD, BOW, AXE, HAMMER, SHIELD, DAGGER, CROSSBOW, BATTLEAXE, STAFF, SCEPTER</td><td>Tipi di arma.</td></tr>
+            <tr><td><code>Armour</code></td><td>CHESTPLATE, PANTS, BOOTS, GAUNTLETS, HELMET, BELT</td><td>Tipi di armatura.</td></tr>
             <tr><td><code>Characteristic</code></td><td>STRENGTH, INTELLIGENCE, AGILITY, WISDOM, CHARISMA, RESISTANCE, STAMINA, LUCK</td><td>Le caratteristiche su cui agiscono i bonus.</td></tr>
           </tbody>
         </table>
@@ -530,6 +544,67 @@ result.<span class="m">debuffs</span>();   <span class="c">// [] vuota</span></p
       </p>
     </section>
 
+    <section id="armi">
+      <h2>⚔️ Armi</h2>
+      <p>
+        <code>WeaponGeneratorTool</code> è la <strong>copia esatta</strong> del generatore di gioielli:
+        stessa sintassi, stesse regole. Cambia solo il tipo generato. Scegli esattamente una fonte per
+        il tipo e una per la rarità; i bonus arrivano di default e li puoi togliere con
+        <code>noStatusEffect()</code>.
+      </p>
+      <div class="code">
+        <div class="bar"><span class="file">Casi tipici</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="c">// arma fissa + rarità fissa</span>
+<span class="t">WeaponGeneratorTool</span>.<span class="m">building</span>().<span class="m">weapon</span>(<span class="t">Weapon</span>.SWORD).<span class="m">rarity</span>(<span class="t">Rarity</span>.EPIC).<span class="m">generate</span>();
+
+<span class="c">// arma casuale + rarità casuale fino a un massimo</span>
+<span class="t">WeaponGeneratorTool</span>.<span class="m">building</span>().<span class="m">randomWeapon</span>().<span class="m">maxRarity</span>(<span class="t">Rarity</span>.RARE).<span class="m">generate</span>();
+
+<span class="c">// senza bonus</span>
+<span class="t">WeaponGeneratorTool</span>.<span class="m">building</span>().<span class="m">weapon</span>(<span class="t">Weapon</span>.BOW).<span class="m">rarity</span>(<span class="t">Rarity</span>.COMMON).<span class="m">noStatusEffect</span>().<span class="m">generate</span>();</pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Cosa scegli</th><th>Metodi (esattamente uno per gruppo)</th></tr></thead>
+          <tbody>
+            <tr><td>Tipo d'arma</td><td><code>weapon(Weapon)</code> · <code>randomWeapon()</code></td></tr>
+            <tr><td>Rarità</td><td><code>rarity(Rarity)</code> · <code>maxRarity(Rarity)</code> · <code>rarityTable(RarityTable)</code> · <code>randomRarity()</code></td></tr>
+            <tr><td>Bonus</td><td>automatici · <code>noStatusEffect()</code> per ometterli</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Risultato:
+        <code>WeaponResult(Weapon weapon, Rarity rarity, List&lt;BuffElement&gt; buffs, List&lt;DebuffElement&gt; debuffs)</code>.
+        Le regole di validazione (fonte mancante o doppia) sono identiche a quelle dei
+        <a href="#gioielli">gioielli</a>.
+      </p>
+    </section>
+
+    <section id="armature">
+      <h2>🛡️ Armature</h2>
+      <p>
+        <code>ArmourGeneratorTool</code> funziona esattamente come il generatore di armi, con
+        <code>armour(Armour)</code> / <code>randomArmour()</code> al posto dell'arma. Stesse quattro
+        fonti di rarità, stesso <code>noStatusEffect()</code>.
+      </p>
+      <div class="code">
+        <div class="bar"><span class="file">Casi tipici</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="c">// armatura fissa + rarità fissa</span>
+<span class="t">ArmourGeneratorTool</span>.<span class="m">building</span>().<span class="m">armour</span>(<span class="t">Armour</span>.HELMET).<span class="m">rarity</span>(<span class="t">Rarity</span>.LEGENDARY).<span class="m">generate</span>();
+
+<span class="c">// armatura casuale + rarità da tabella pesata</span>
+<span class="t">ArmourGeneratorTool</span>.<span class="m">building</span>().<span class="m">randomArmour</span>().<span class="m">rarityTable</span>(table).<span class="m">generate</span>();
+
+<span class="c">// senza bonus</span>
+<span class="t">ArmourGeneratorTool</span>.<span class="m">building</span>().<span class="m">armour</span>(<span class="t">Armour</span>.BOOTS).<span class="m">randomRarity</span>().<span class="m">noStatusEffect</span>().<span class="m">generate</span>();</pre>
+      </div>
+      <p>
+        Risultato:
+        <code>ArmourResult(Armour armour, Rarity rarity, List&lt;BuffElement&gt; buffs, List&lt;DebuffElement&gt; debuffs)</code>.
+      </p>
+    </section>
+
     <section id="buffdebuff">
       <h2>✨ Buff &amp; Debuff</h2>
       <p>
@@ -599,7 +674,7 @@ result.<span class="m">debuffs</span>();   <span class="c">// oggi sempre vuota 
         <li><strong>Nuovi nomi</strong>: aggiungi una riga al file <code>.txt</code> della razza in <code>src/main/resources/namegenerator/</code>. Nessun codice da toccare.</li>
         <li><strong>Nuova razza</strong>: aggiungi una costante a <code>Race</code> con il suo file di nomi e un simbolo.</li>
         <li><strong>Regole di bonus diverse</strong>: implementa <code>BuffDebuffRules</code> e passala con <code>rules(...)</code>.</li>
-        <li><strong>Nuovi tipi di dominio</strong>: enum come <code>Armour</code> e <code>Weapon</code> sono già presenti nel modello, pronti per futuri generatori.</li>
+        <li><strong>Nuovo generatore</strong>: prendi <code>JewelGeneratorTool</code> (o <code>WeaponGeneratorTool</code>) come modello — <code>WeaponGeneratorTool</code> e <code>ArmourGeneratorTool</code> ne sono la copia 1:1, cambia solo l'enum del tipo generato.</li>
       </ul>
     </section>
 
