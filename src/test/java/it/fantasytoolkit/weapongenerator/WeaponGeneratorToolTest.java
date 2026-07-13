@@ -1,5 +1,7 @@
 package it.fantasytoolkit.weapongenerator;
 
+import it.fantasytoolkit.armourgenerator.ArmourGeneratorTool;
+import it.fantasytoolkit.armourgenerator.result.ArmourResult;
 import it.fantasytoolkitcore.core.model.Rarity;
 import it.fantasytoolkitcore.core.model.Weapon;
 import it.fantasytoolkit.weapongenerator.result.WeaponResult;
@@ -14,6 +16,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class WeaponGeneratorToolTest {
 
     private static final int ITERATIONS = 50;
+
+    @Test
+    void simpleGeneration() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            WeaponResult result = WeaponGeneratorTool.building()
+                    .randomWeapon()
+                    .randomRarity()
+                    .generate();
+
+            System.out.println(result);
+        }
+    }
 
     @Test
     void generatesWeaponWithRequestedWeaponAndRarity() {

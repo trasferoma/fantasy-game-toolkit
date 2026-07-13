@@ -16,6 +16,19 @@ public class ArmourGeneratorToolTest {
     private static final int ITERATIONS = 50;
 
     @Test
+    void simpleGeneration() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            ArmourResult result = ArmourGeneratorTool.building()
+                    .randomArmour()
+                    .randomRarity()
+                    .noStatusEffect()
+                    .generate();
+
+            System.out.println(result);
+        }
+    }
+
+    @Test
     void generatesArmourWithRequestedArmourAndRarity() {
         ArmourResult result = ArmourGeneratorTool.building()
                 .armour(Armour.HELMET)
