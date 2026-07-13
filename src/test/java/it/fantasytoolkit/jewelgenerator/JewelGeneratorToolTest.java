@@ -317,6 +317,20 @@ public class JewelGeneratorToolTest {
         }
     }
 
+    @Test
+    void generatesJewelWithNoStatusEffectHasEmptyBuffsAndDebuffs() {
+        JewelResult result = JewelGeneratorTool.building()
+                .jewel(Jewel.RING)
+                .rarity(Rarity.COMMON)
+                .noStatusEffect()
+                .generate();
+
+        assertThat(result.jewel()).isEqualTo(Jewel.RING);
+        assertThat(result.rarity()).isEqualTo(Rarity.COMMON);
+        assertThat(result.buffs()).isNotNull().isEmpty();
+        assertThat(result.debuffs()).isNotNull().isEmpty();
+    }
+
     private void assertGeneratedJewelMatches(Jewel jewel, Rarity rarity) {
         JewelResult result = JewelGeneratorTool
                 .building()

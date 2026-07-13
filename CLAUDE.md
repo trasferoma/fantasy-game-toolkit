@@ -50,13 +50,16 @@ CharacterNameGeneratorTool.building().race(Race.ORC).generate();                
 
 - `jewelgenerator.JewelGeneratorTool` — `building()` → `Builder` → `generate()` → `JewelResult`.
   - **Tipo di gioiello**: `jewel(Jewel)` per uno fisso, oppure `randomJewel()` per uno casuale tra tutti i `Jewel.values()`. Nessuno dei due → `IllegalStateException`.
-  - **Rarità**: esattamente **una** tra `rarity(Rarity)` (rarità fissa), `maxRarity(Rarity)` (casuale fino a quel livello incluso, per `ordinal()`) e `rarityTable(RarityTable)` (estrazione pesata). Zero o più di una fonte → `IllegalStateException`.
-- `jewelgenerator.result.JewelResult` — `record JewelResult(Jewel jewel, Rarity rarity) implements GeneratedElementResult`, con `Builder` interno.
+  - **Rarità**: esattamente **una** tra `rarity(Rarity)` (rarità fissa), `maxRarity(Rarity)` (casuale fino a quel livello incluso, per `ordinal()`), `rarityTable(RarityTable)` (estrazione pesata) e `randomRarity()` (casuale tra tutte le `Rarity.values()`). Zero o più di una fonte → `IllegalStateException`.
+  - **Buff/debuff**: di default il gioiello riceve i propri status effect delegando internamente a `BuffDebuffGeneratorTool` con la rarità risolta (i debuff restano oggi sempre vuoti, vedi `buffdebuffgenerator`). `noStatusEffect()` produce invece un gioiello **senza** status effect (`buffs` e `debuffs` vuoti) saltando quella chiamata; è combinabile con qualsiasi sorgente di gioiello/rarità e non incide su tipo e rarità.
+- `jewelgenerator.result.JewelResult` — `record JewelResult(Jewel jewel, Rarity rarity, List<BuffElement> buffs, List<DebuffElement> debuffs) implements GeneratedElementResult`, con `Builder` interno. `buffs`/`debuffs` riusano i record di `buffdebuffgenerator.result`.
 
 ```java
 JewelGeneratorTool.building().jewel(Jewel.RING).rarity(Rarity.EPIC).generate();
 JewelGeneratorTool.building().randomJewel().maxRarity(Rarity.RARE).generate();
 JewelGeneratorTool.building().jewel(Jewel.NECKLACE).rarityTable(table).generate();
+JewelGeneratorTool.building().randomJewel().randomRarity().generate();
+JewelGeneratorTool.building().jewel(Jewel.RING).rarity(Rarity.COMMON).noStatusEffect().generate();  // buffs/debuffs vuoti
 ```
 
 ### `buffdebuffgenerator` — generazione di buff/debuff per rarità

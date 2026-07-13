@@ -1,5 +1,6 @@
 package it.fantasytoolkit.jewelgenerator;
 
+import java.util.List;
 import java.util.Random;
 
 import it.fantasytoolkitcore.core.model.Jewel;
@@ -26,6 +27,7 @@ public final class JewelGeneratorTool {
         private Rarity maxRarity;
         private RarityTable rarityTable;
         private boolean randomRarity;
+        private boolean noStatusEffect;
 
         private Builder() {
         }
@@ -60,6 +62,11 @@ public final class JewelGeneratorTool {
             return this;
         }
 
+        public Builder noStatusEffect() {
+            this.noStatusEffect = true;
+            return this;
+        }
+
         public JewelResult generate() {
             validateJewelSource();
             validateRaritySource();
@@ -67,9 +74,7 @@ public final class JewelGeneratorTool {
             Random random = new Random();
             Jewel resolvedJewel = resolveJewel(random);
             Rarity resolvedRarity = resolveRarity(random);
-            BuffDebuffResult buffDebuffResult = BuffDebuffGeneratorTool.building()
-                    .rarity(resolvedRarity)
-                    .generate();
+            BuffDebuffResult buffDebuffResult = resolveBuffDebuffResult(resolvedRarity);
 
             return JewelResult.builder()
                     .jewel(resolvedJewel)
@@ -77,6 +82,15 @@ public final class JewelGeneratorTool {
                     .buffs(buffDebuffResult.buffs())
                     .debuffs(buffDebuffResult.debuffs())
                     .build();
+        }
+
+        private BuffDebuffResult resolveBuffDebuffResult(Rarity resolvedRarity) {
+            if (noStatusEffect) {
+                return new BuffDebuffResult(List.of(), List.of());
+            }
+            return BuffDebuffGeneratorTool.building()
+                    .rarity(resolvedRarity)
+                    .generate();
         }
 
         private void validateJewelSource() {
