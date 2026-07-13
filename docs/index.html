@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fantasy-game-toolkit — Guida</title>
+<meta name="description" content="Guida d'uso del fantasy-game-toolkit: generatori Java per nomi di personaggi, gioielli e buff/debuff, tutti con la stessa sintassi fluente building()…generate().">
+
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f7f8fa;
+    --ink: #1d2433;
+    --muted: #5b6577;
+    --border: #e6e8ee;
+    --accent: #7048e8;
+    --accent-soft: #f3efff;
+    --code-bg: #161b27;
+    --code-ink: #e7eaf3;
+    --code-dim: #8a93a6;
+    --green: #2f9e44;
+    --amber: #e8920c;
+    --red: #e03131;
+    --blue: #1c7ed6;
+    --radius: 8px;
+    --sidebar-w: 248px;
+    --maxw: 820px;
+    --mono: "SFMono-Regular", "Cascadia Code", "JetBrains Mono", "Consolas", "Liberation Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code { font-family: var(--mono); font-size: 0.875em; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 60px;
+    padding: 0 20px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    font-size: 1.05rem;
+  }
+  .brand:hover { text-decoration: none; }
+  .gem {
+    width: 13px; height: 13px; flex: none;
+    background: var(--accent);
+    transform: rotate(45deg);
+    border-radius: 3px;
+    box-shadow: 0 0 0 0 rgba(112, 72, 232, 0.5);
+    animation: pulse 2.4s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(112, 72, 232, 0.4); }
+    70% { box-shadow: 0 0 0 9px rgba(112, 72, 232, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(112, 72, 232, 0); }
+  }
+  .brand .tag { color: var(--muted); font-weight: 400; font-size: 0.85rem; }
+
+  .spacer { flex: 1; }
+
+  .toplink { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+
+  .menu-btn {
+    display: none;
+    font: inherit; font-size: 0.85rem; font-weight: 600;
+    border: 1px solid var(--border); background: #fff; color: var(--ink);
+    border-radius: var(--radius); padding: 6px 12px; cursor: pointer;
+  }
+
+  /* ---------- layout ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+    align-items: start;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 60px;
+    align-self: start;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+    padding: 26px 14px 60px 20px;
+    border-right: 1px solid var(--border);
+  }
+  .sidebar h4 {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    margin: 18px 8px 6px;
+  }
+  .sidebar nav a {
+    display: block;
+    padding: 5px 10px;
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    border-left: 2px solid transparent;
+  }
+  .sidebar nav a:hover { background: var(--panel); color: var(--ink); text-decoration: none; }
+  .sidebar nav a.active {
+    color: var(--accent);
+    background: var(--accent-soft);
+    font-weight: 600;
+  }
+
+  .content { padding: 40px 40px 120px; max-width: calc(var(--maxw) + 80px); }
+  .content section { scroll-margin-top: 76px; }
+
+  /* ---------- typography ---------- */
+  h1 { font-size: 2.2rem; line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 10px; text-wrap: balance; }
+  h2 {
+    font-size: 1.5rem; letter-spacing: -0.01em; margin: 52px 0 14px;
+    padding-top: 10px; text-wrap: balance;
+  }
+  h3 { font-size: 1.12rem; margin: 30px 0 8px; }
+  p, li { max-width: 68ch; }
+  .lead { font-size: 1.15rem; color: var(--muted); max-width: 64ch; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  .eyebrow {
+    text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.74rem;
+    font-weight: 700; color: var(--accent); margin-bottom: 8px;
+  }
+
+  /* ---------- callouts ---------- */
+  .note {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin: 18px 0;
+    font-size: 0.94rem;
+  }
+  .note.warn { border-left-color: var(--amber); background: #fff7e9; }
+  .note strong { color: var(--ink); }
+
+  /* ---------- code ---------- */
+  .code {
+    position: relative;
+    background: var(--code-bg);
+    border-radius: var(--radius);
+    margin: 16px 0;
+    overflow: hidden;
+  }
+  .code .bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    color: var(--code-dim);
+    font-family: var(--mono); font-size: 0.74rem;
+  }
+  .code .bar .file { flex: 1; }
+  .code .copy {
+    font: inherit; font-family: var(--sans); font-size: 0.72rem; font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.16); color: var(--code-dim);
+    background: transparent; border-radius: 5px; padding: 3px 9px; cursor: pointer;
+  }
+  .code .copy:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+  pre {
+    margin: 0; padding: 16px;
+    overflow-x: auto;
+    color: var(--code-ink);
+    font-family: var(--mono); font-size: 0.84rem; line-height: 1.55;
+    tab-size: 4;
+  }
+  pre .k { color: #c7a3ff; }       /* keyword */
+  pre .s { color: #9ae6a4; }       /* string / number */
+  pre .c { color: var(--code-dim); font-style: italic; } /* comment */
+  pre .t { color: #7bc5ff; }       /* type */
+  pre .m { color: #ffd479; }       /* method emphasis */
+  :not(pre) > code {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 5px;
+    color: var(--ink);
+  }
+
+  /* ---------- tables ---------- */
+  .table-wrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--border); border-radius: var(--radius); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--panel); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+  tr:last-child td { border-bottom: 0; }
+  td code { white-space: nowrap; }
+
+  /* ---------- chips ---------- */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 0.82rem; font-weight: 600;
+    border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px;
+    background: #fff;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .dot.g { background: var(--green); } .dot.a { background: var(--amber); }
+  .dot.r { background: var(--red); } .dot.b { background: var(--blue); }
+  .dot.m { background: var(--muted); }
+
+  /* ---------- tool cards ---------- */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 20px 0 8px; }
+  .card {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 18px; background: var(--panel);
+  }
+  .card h3 { margin: 0 0 4px; font-size: 1rem; }
+  .card p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+  .card a.more { display: inline-block; margin-top: 10px; font-size: 0.85rem; font-weight: 600; }
+
+  [hidden] { display: none !important; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 0.85rem;
+    padding: 24px 40px; max-width: 1180px; margin: 0 auto;
+  }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar {
+      position: fixed; top: 60px; left: 0; right: 0; bottom: 0; height: auto;
+      background: #fff; z-index: 15; border-right: 0; border-bottom: 1px solid var(--border);
+    }
+    .sidebar[hidden] { display: none !important; }
+    .menu-btn { display: inline-block; }
+    .content { padding: 28px 20px 100px; }
+    h1 { font-size: 1.8rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gem { animation: none; }
+    html { scroll-behavior: auto; }
+  }
+  html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <button class="menu-btn" id="menuBtn" aria-label="Mostra indice">☰ Indice</button>
+  <a class="brand" href="#top">
+    <span class="gem" aria-hidden="true"></span>
+    fantasy-game-toolkit
+    <span class="tag">guida</span>
+  </a>
+  <span class="spacer"></span>
+  <span class="toplink">Java 21</span>
+</header>
+
+<div class="layout" id="lang-it">
+  <aside class="sidebar" id="sidebar">
+    <nav>
+      <h4>Iniziare</h4>
+      <a href="#intro">Che cos'è</a>
+      <a href="#schema">Lo schema comune</a>
+      <a href="#installazione">Installazione</a>
+      <a href="#modello">Il modello condiviso</a>
+      <h4>I generatori</h4>
+      <a href="#nomi">Nomi di personaggio</a>
+      <a href="#gioielli">Gioielli</a>
+      <a href="#buffdebuff">Buff &amp; Debuff</a>
+      <h4>Riferimento</h4>
+      <a href="#estendere">Estendere il toolkit</a>
+      <a href="#nongoals">Cosa NON fa</a>
+    </nav>
+  </aside>
+
+  <main class="content" id="top">
+
+    <section id="intro">
+      <div class="eyebrow">Guida d'uso</div>
+      <h1>Generatori per il tuo gioco fantasy, in una riga</h1>
+      <p class="lead">
+        <strong>fantasy-game-toolkit</strong> è una libreria Java di piccoli generatori — nomi di
+        personaggio, gioielli, buff e debuff — pensati per un'unica cosa: darti un risultato pronto
+        con <em>una sola catena di chiamate</em>.
+      </p>
+      <p>
+        Non c'è configurazione, non ci sono file da preparare, non c'è stato da gestire. Ogni
+        generatore si usa <strong>sempre allo stesso modo</strong>: parti da <code>building()</code>,
+        aggiungi cosa vuoi, chiudi con <code>generate()</code>. Impari un generatore e li sai usare tutti.
+      </p>
+      <div class="note">
+        <strong>In una riga:</strong>
+        <code>JewelGeneratorTool.building().randomJewel().randomRarity().generate();</code> —
+        e hai un gioiello completo di rarità e bonus. Stessa identica forma per gli altri tool.
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <h3>🧝 Nomi</h3>
+          <p>Un nome coerente con la razza, con o senza soprannome.</p>
+          <a class="more" href="#nomi">Vai al generatore →</a>
+        </div>
+        <div class="card">
+          <h3>💍 Gioielli</h3>
+          <p>Tipo di gioiello, rarità e bonus, con la fonte di rarità che preferisci.</p>
+          <a class="more" href="#gioielli">Vai al generatore →</a>
+        </div>
+        <div class="card">
+          <h3>✨ Buff &amp; Debuff</h3>
+          <p>Bonus alle caratteristiche calibrati sulla rarità, con regole personalizzabili.</p>
+          <a class="more" href="#buffdebuff">Vai al generatore →</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="schema">
+      <h2>Lo schema comune</h2>
+      <p>
+        Tutti i generatori del toolkit seguono lo stesso contratto. Una volta capito questo, ogni
+        tool è immediato:
+      </p>
+      <ul>
+        <li>La classe si chiama <code>Xxx<strong>Tool</strong></code> ed espone un solo punto d'ingresso statico: <code>building()</code>.</li>
+        <li><code>building()</code> restituisce un <strong>Builder</strong> fluente: aggiungi le opzioni che ti servono, <strong>in qualsiasi ordine</strong>.</li>
+        <li>La catena si chiude sempre con <code>generate()</code>, che restituisce un <strong>result immutabile</strong> (un <code>record</code>).</li>
+        <li>Ogni result implementa la marker interface comune <code>GeneratedElementResult</code>.</li>
+      </ul>
+      <div class="code">
+        <div class="bar"><span class="file">Sempre questa forma</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="t">XxxResult</span> result = <span class="t">XxxGeneratorTool</span>.<span class="m">building</span>()
+        .<span class="m">opzione</span>(...)      <span class="c">// zero o più opzioni, in qualsiasi ordine</span>
+        .<span class="m">generate</span>();       <span class="c">// chiude e restituisce un record immutabile</span></pre>
+      </div>
+      <div class="note warn">
+        <strong>La generazione è casuale e non riproducibile.</strong> Ogni tool usa internamente un
+        <code>new Random()</code>: non c'è un seme da passare, quindi due chiamate identiche possono
+        dare risultati diversi. Se un input obbligatorio manca o è incoerente, <code>generate()</code>
+        lancia <code>IllegalStateException</code> con un messaggio diagnostico.
+      </div>
+    </section>
+
+    <section id="installazione">
+      <h2>Installazione</h2>
+      <p>Progetto Maven, <strong>Java 21</strong>. Coordinate dell'artefatto:</p>
+      <div class="code">
+        <div class="bar"><span class="file">pom.xml</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="t">&lt;dependency&gt;</span>
+    &lt;groupId&gt;it.fantasytoolkit&lt;/groupId&gt;
+    &lt;artifactId&gt;fantasytoolkit&lt;/artifactId&gt;
+    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+<span class="t">&lt;/dependency&gt;</span></pre>
+      </div>
+      <p>
+        A runtime non servono dipendenze esterne: le liste di nomi sono file <code>.txt</code> sul
+        classpath. Lombok è usato solo a compile-time (scope <code>provided</code>).
+      </p>
+    </section>
+
+    <section id="modello">
+      <h2>Il modello condiviso</h2>
+      <p>
+        I generatori parlano un vocabolario comune di tipi di dominio (package
+        <code>it.fantasytoolkitcore.core.model</code>). Li ritrovi ovunque:
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tipo</th><th>Valori</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td><code>Race</code></td><td>HUMAN, ELF, ORC, UNDEAD</td><td>Ogni razza ha la propria lista di nomi.</td></tr>
+            <tr><td><code>Rarity</code></td><td>COMMON, UNCOMMON, RARE, EPIC, LEGENDARY</td><td><strong>Ordine significativo</strong> (dal più comune al più raro).</td></tr>
+            <tr><td><code>Jewel</code></td><td>RING, NECKLACE, BRACELET, EARRING</td><td>Tipi di gioiello.</td></tr>
+            <tr><td><code>Characteristic</code></td><td>STRENGTH, INTELLIGENCE, AGILITY, WISDOM, CHARISMA, RESISTANCE, STAMINA, LUCK</td><td>Le caratteristiche su cui agiscono i bonus.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        C'è poi <code>RarityTable</code>, una tabella di estrazione <strong>pesata</strong> delle rarità
+        (usata dai gioielli). Si costruisce col builder e la somma dei pesi deve fare <strong>100</strong>:
+      </p>
+      <div class="code">
+        <div class="bar"><span class="file">RarityTable</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="t">RarityTable</span> table = <span class="t">RarityTable</span>.<span class="m">builder</span>()
+        .<span class="m">entry</span>(<span class="t">Rarity</span>.COMMON, <span class="s">60</span>)
+        .<span class="m">entry</span>(<span class="t">Rarity</span>.UNCOMMON, <span class="s">20</span>)
+        .<span class="m">entry</span>(<span class="t">Rarity</span>.RARE, <span class="s">19</span>)
+        .<span class="m">entry</span>(<span class="t">Rarity</span>.LEGENDARY, <span class="s">1</span>)   <span class="c">// somma pesi = 100</span>
+        .<span class="m">build</span>();</pre>
+      </div>
+    </section>
+
+    <hr>
+
+    <section id="nomi">
+      <h2>🧝 Nomi di personaggio</h2>
+      <p>
+        <code>CharacterNameGeneratorTool</code> genera un nome pescandolo dalla lista associata alla
+        razza. È il generatore più semplice: l'unica cosa obbligatoria è la <strong>razza</strong>.
+      </p>
+      <div class="code">
+        <div class="bar"><span class="file">Nome semplice</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="t">NameResult</span> result = <span class="t">CharacterNameGeneratorTool</span>.<span class="m">building</span>()
+        .<span class="m">race</span>(<span class="t">Race</span>.ORC)
+        .<span class="m">generate</span>();
+
+result.<span class="m">name</span>();   <span class="c">// es. "Gorbash"</span></pre>
+      </div>
+      <p>Con <code>addNickname()</code> al nome di razza viene aggiunto un soprannome (da <code>nicknames.txt</code>):</p>
+      <div class="code">
+        <div class="bar"><span class="file">Nome + soprannome</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="c">// i metodi sono fluenti e in qualsiasi ordine</span>
+<span class="t">NameResult</span> result = <span class="t">CharacterNameGeneratorTool</span>.<span class="m">building</span>()
+        .<span class="m">addNickname</span>()
+        .<span class="m">race</span>(<span class="t">Race</span>.HUMAN)
+        .<span class="m">generate</span>();
+
+result.<span class="m">name</span>();   <span class="c">// es. "Aldric il Coraggioso"</span></pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metodo del builder</th><th>A cosa serve</th><th>Obbligatorio</th></tr></thead>
+          <tbody>
+            <tr><td><code>race(Race)</code></td><td>Sceglie la lista di nomi in base alla razza</td><td>Sì</td></tr>
+            <tr><td><code>addNickname()</code></td><td>Aggiunge un soprannome dopo il nome</td><td>No</td></tr>
+            <tr><td><code>generate()</code></td><td>Produce il <code>NameResult</code></td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Risultato: <code>NameResult(String name)</code>. Senza <code>race(...)</code> → <code>IllegalStateException</code>.</p>
+    </section>
+
+    <section id="gioielli">
+      <h2>💍 Gioielli</h2>
+      <p>
+        <code>JewelGeneratorTool</code> genera un gioiello completo: <strong>tipo</strong>,
+        <strong>rarità</strong> e i relativi <strong>bonus</strong> (buff/debuff). Devi scegliere
+        esattamente una fonte per il tipo e una per la rarità — il resto lo fa il tool.
+      </p>
+      <div class="code">
+        <div class="bar"><span class="file">Casi tipici</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="c">// tipo fisso + rarità fissa</span>
+<span class="t">JewelGeneratorTool</span>.<span class="m">building</span>().<span class="m">jewel</span>(<span class="t">Jewel</span>.RING).<span class="m">rarity</span>(<span class="t">Rarity</span>.EPIC).<span class="m">generate</span>();
+
+<span class="c">// tipo casuale + rarità casuale fino a un massimo</span>
+<span class="t">JewelGeneratorTool</span>.<span class="m">building</span>().<span class="m">randomJewel</span>().<span class="m">maxRarity</span>(<span class="t">Rarity</span>.RARE).<span class="m">generate</span>();
+
+<span class="c">// tipo fisso + rarità pescata da una tabella pesata</span>
+<span class="t">JewelGeneratorTool</span>.<span class="m">building</span>().<span class="m">jewel</span>(<span class="t">Jewel</span>.NECKLACE).<span class="m">rarityTable</span>(table).<span class="m">generate</span>();
+
+<span class="c">// tutto casuale</span>
+<span class="t">JewelGeneratorTool</span>.<span class="m">building</span>().<span class="m">randomJewel</span>().<span class="m">randomRarity</span>().<span class="m">generate</span>();</pre>
+      </div>
+
+      <h3>Scegliere il tipo di gioiello</h3>
+      <p>Esattamente <strong>una</strong> tra queste (nessuna o entrambe → <code>IllegalStateException</code>):</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metodo</th><th>Effetto</th></tr></thead>
+          <tbody>
+            <tr><td><code>jewel(Jewel)</code></td><td>Tipo fisso</td></tr>
+            <tr><td><code>randomJewel()</code></td><td>Casuale tra tutti i <code>Jewel.values()</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Scegliere la rarità</h3>
+      <p>Esattamente <strong>una</strong> tra queste (zero o più di una → <code>IllegalStateException</code>):</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metodo</th><th>Effetto</th></tr></thead>
+          <tbody>
+            <tr><td><code>rarity(Rarity)</code></td><td>Rarità fissa</td></tr>
+            <tr><td><code>maxRarity(Rarity)</code></td><td>Casuale fino a quel livello incluso</td></tr>
+            <tr><td><code>rarityTable(RarityTable)</code></td><td>Estrazione pesata dalla tabella</td></tr>
+            <tr><td><code>randomRarity()</code></td><td>Casuale tra tutte le rarità</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Bonus del gioiello</h3>
+      <p>
+        Di default il gioiello riceve automaticamente i suoi bonus, calibrati sulla rarità risolta
+        (dietro le quinte usa il generatore di <a href="#buffdebuff">Buff &amp; Debuff</a>). Se vuoi
+        un gioiello "nudo", senza alcun effetto, aggiungi <code>noStatusEffect()</code>:
+      </p>
+      <div class="code">
+        <div class="bar"><span class="file">Gioiello senza bonus</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="t">JewelResult</span> result = <span class="t">JewelGeneratorTool</span>.<span class="m">building</span>()
+        .<span class="m">jewel</span>(<span class="t">Jewel</span>.RING)
+        .<span class="m">rarity</span>(<span class="t">Rarity</span>.COMMON)
+        .<span class="m">noStatusEffect</span>()        <span class="c">// buffs e debuffs vuoti</span>
+        .<span class="m">generate</span>();
+
+result.<span class="m">buffs</span>();     <span class="c">// [] vuota</span>
+result.<span class="m">debuffs</span>();   <span class="c">// [] vuota</span></pre>
+      </div>
+      <div class="note">
+        <code>noStatusEffect()</code> incide <strong>solo</strong> sui bonus: tipo e rarità restano
+        quelli che hai scelto, ed è combinabile con qualsiasi fonte di tipo/rarità.
+      </div>
+      <p>
+        Risultato:
+        <code>JewelResult(Jewel jewel, Rarity rarity, List&lt;BuffElement&gt; buffs, List&lt;DebuffElement&gt; debuffs)</code>.
+      </p>
+    </section>
+
+    <section id="buffdebuff">
+      <h2>✨ Buff &amp; Debuff</h2>
+      <p>
+        <code>BuffDebuffGeneratorTool</code> genera un set di bonus alle caratteristiche calibrato
+        sulla rarità. L'unica cosa obbligatoria è la <strong>rarità</strong>.
+      </p>
+      <div class="code">
+        <div class="bar"><span class="file">Uso base</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="t">BuffDebuffResult</span> result = <span class="t">BuffDebuffGeneratorTool</span>.<span class="m">building</span>()
+        .<span class="m">rarity</span>(<span class="t">Rarity</span>.RARE)
+        .<span class="m">generate</span>();
+
+result.<span class="m">buffs</span>();     <span class="c">// es. [BuffElement(STRENGTH, 5), BuffElement(LUCK, 3)]</span>
+result.<span class="m">debuffs</span>();   <span class="c">// oggi sempre vuota (vedi nota)</span></pre>
+      </div>
+      <p>
+        Più alta è la rarità, più bonus (o bonus più forti) possono comparire. Le caratteristiche
+        interessate sono sempre <strong>distinte</strong> e i valori ricadono nell'intervallo previsto
+        dalla combinazione estratta. Ecco le combinazioni di default per rarità
+        (<code>numero di buff × intervallo valori</code>):
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rarità</th><th>Combinazioni possibili (count × [min–max])</th></tr></thead>
+          <tbody>
+            <tr><td><code>COMMON</code></td><td>1 × [1–2]</td></tr>
+            <tr><td><code>UNCOMMON</code></td><td>1 × [3–4] · 2 × [1–2]</td></tr>
+            <tr><td><code>RARE</code></td><td>1 × [5–6] · 2 × [3–4] · 3 × [1–2]</td></tr>
+            <tr><td><code>EPIC</code></td><td>1 × [7–8] · 2 × [5–6] · 3 × [3–4] · 4 × [1–2]</td></tr>
+            <tr><td><code>LEGENDARY</code></td><td>1 × [9–10] · 2 × [7–8] · 3 × [5–6] · 4 × [3–4] · 5 × [1–2]</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Vuoi regole diverse? Passa una tua <code>BuffDebuffRules</code> — nient'altro cambia:</p>
+      <div class="code">
+        <div class="bar"><span class="file">Regole personalizzate</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="c">// due buff, sempre di valore 10, per ogni rarità</span>
+<span class="t">BuffDebuffRules</span> customRules = rarity -&gt; <span class="t">List</span>.<span class="m">of</span>(<span class="k">new</span> <span class="t">BuffCombination</span>(<span class="s">2</span>, <span class="s">10</span>, <span class="s">10</span>));
+
+<span class="t">BuffDebuffResult</span> result = <span class="t">BuffDebuffGeneratorTool</span>.<span class="m">building</span>()
+        .<span class="m">rarity</span>(<span class="t">Rarity</span>.COMMON)
+        .<span class="m">rules</span>(customRules)
+        .<span class="m">generate</span>();</pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metodo del builder</th><th>A cosa serve</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><code>rarity(Rarity)</code></td><td>Fascia di potenza dei bonus</td><td>— (obbligatorio)</td></tr>
+            <tr><td><code>rules(BuffDebuffRules)</code></td><td>Combinazioni e intervalli</td><td><code>DefaultBuffDebuffRules</code></td></tr>
+            <tr><td><code>generate()</code></td><td>Produce il <code>BuffDebuffResult</code></td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note warn">
+        <strong>I debuff non sono ancora generati.</strong> La struttura esiste
+        (<code>DebuffElement</code>, <code>StatusEffect</code>) ma oggi <code>debuffs()</code> è sempre
+        una lista vuota. È un punto di estensione già predisposto.
+      </div>
+    </section>
+
+    <hr>
+
+    <section id="estendere">
+      <h2>Estendere il toolkit</h2>
+      <ul>
+        <li><strong>Nuovi nomi</strong>: aggiungi una riga al file <code>.txt</code> della razza in <code>src/main/resources/namegenerator/</code>. Nessun codice da toccare.</li>
+        <li><strong>Nuova razza</strong>: aggiungi una costante a <code>Race</code> con il suo file di nomi e un simbolo.</li>
+        <li><strong>Regole di bonus diverse</strong>: implementa <code>BuffDebuffRules</code> e passala con <code>rules(...)</code>.</li>
+        <li><strong>Nuovi tipi di dominio</strong>: enum come <code>Armour</code> e <code>Weapon</code> sono già presenti nel modello, pronti per futuri generatori.</li>
+      </ul>
+    </section>
+
+    <section id="nongoals">
+      <h2>Cosa NON fa (di proposito)</h2>
+      <p>Per restare semplice e prevedibile, il toolkit <strong>non</strong>:</p>
+      <ul>
+        <li>usa database o configurazione esterna — le liste <code>.txt</code> sono l'unica origine dati;</li>
+        <li>espone un seme casuale: la generazione è volutamente non riproducibile;</li>
+        <li>mantiene stato tra le chiamate: ogni <code>generate()</code> è indipendente.</li>
+      </ul>
+      <p style="margin-top:28px;color:var(--muted)">
+        È tutto qui. <code>building()</code>, qualche opzione, <code>generate()</code>. Buon gioco.
+      </p>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <span>fantasy-game-toolkit · guida d'uso · Java 21</span>
+</footer>
+
+<script>
+  (function () {
+    var menuBtn = document.getElementById('menuBtn');
+    var sidebar = document.getElementById('sidebar');
+    var brand = document.querySelector('.brand');
+    var sidebarOpen = false;
+
+    function isMobile() {
+      return window.matchMedia('(max-width: 900px)').matches;
+    }
+
+    function applySidebar() {
+      sidebar.hidden = isMobile() && !sidebarOpen;
+    }
+
+    menuBtn.addEventListener('click', function () {
+      sidebarOpen = !sidebarOpen;
+      applySidebar();
+    });
+
+    window.addEventListener('resize', applySidebar);
+
+    brand.addEventListener('click', function (event) {
+      event.preventDefault();
+      window.scrollTo(0, 0);
+    });
+
+    // copy buttons
+    document.querySelectorAll('.code').forEach(function (block) {
+      var btn = block.querySelector('.copy');
+      var pre = block.querySelector('pre');
+      if (!btn || !pre) return;
+
+      btn.addEventListener('click', function () {
+        var prev = btn.textContent;
+
+        function done() {
+          btn.textContent = 'Copiato!';
+          setTimeout(function () { btn.textContent = prev; }, 1400);
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(pre.innerText).then(done);
+          return;
+        }
+
+        var area = document.createElement('textarea');
+        area.value = pre.innerText;
+        area.setAttribute('readonly', '');
+        area.style.position = 'absolute';
+        area.style.left = '-9999px';
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand('copy');
+        document.body.removeChild(area);
+        done();
+      });
+    });
+
+    var links = Array.prototype.slice.call(document.querySelectorAll('.sidebar nav a'));
+
+    // sidebar links: close sidebar on mobile after click
+    links.forEach(function (a) {
+      a.addEventListener('click', function () {
+        if (isMobile()) {
+          sidebarOpen = false;
+          applySidebar();
+        }
+      });
+    });
+
+    // scrollspy: highlight the section currently in view
+    function onScroll() {
+      var sections = links
+        .map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); })
+        .filter(Boolean);
+      if (!sections.length) return;
+
+      var top = window.scrollY + 90;
+      var current = sections[0];
+
+      for (var i = 0; i < sections.length; i++) {
+        if (sections[i].offsetTop <= top) current = sections[i];
+      }
+
+      links.forEach(function (a) {
+        a.classList.toggle('active', current && a.getAttribute('href') === '#' + current.id);
+      });
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    applySidebar();
+    onScroll();
+  })();
+</script>
+</body>
+</html>
