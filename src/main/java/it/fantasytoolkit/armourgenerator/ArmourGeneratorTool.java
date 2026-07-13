@@ -9,6 +9,9 @@ import it.fantasytoolkitcore.core.model.RarityTable;
 import it.fantasytoolkit.buffdebuffgenerator.BuffDebuffGeneratorTool;
 import it.fantasytoolkit.buffdebuffgenerator.result.BuffDebuffResult;
 import it.fantasytoolkit.armourgenerator.result.ArmourResult;
+import it.fantasytoolkit.armourgenerator.rules.ArmourRules;
+import it.fantasytoolkit.armourgenerator.rules.DefaultArmourRules;
+import it.fantasytoolkit.armourgenerator.rules.DefenseRange;
 
 public final class ArmourGeneratorTool {
 
@@ -28,6 +31,7 @@ public final class ArmourGeneratorTool {
         private RarityTable rarityTable;
         private boolean randomRarity;
         private boolean noStatusEffect;
+        private ArmourRules rules = new DefaultArmourRules();
 
         private Builder() {
         }
@@ -67,6 +71,11 @@ public final class ArmourGeneratorTool {
             return this;
         }
 
+        public Builder rules(ArmourRules rules) {
+            this.rules = rules;
+            return this;
+        }
+
         public ArmourResult generate() {
             validateArmourSource();
             validateRaritySource();
@@ -75,13 +84,20 @@ public final class ArmourGeneratorTool {
             Armour resolvedArmour = resolveArmour(random);
             Rarity resolvedRarity = resolveRarity(random);
             BuffDebuffResult buffDebuffResult = resolveBuffDebuffResult(resolvedRarity);
+            DefenseRange defenseRange = rules.defenseFor(resolvedRarity);
+            int defense = randomValueInRange(defenseRange.minValue(), defenseRange.maxValue(), random);
 
             return ArmourResult.builder()
                     .armour(resolvedArmour)
                     .rarity(resolvedRarity)
                     .buffs(buffDebuffResult.buffs())
                     .debuffs(buffDebuffResult.debuffs())
+                    .defense(defense)
                     .build();
+        }
+
+        private int randomValueInRange(int minValue, int maxValue, Random random) {
+            return minValue + random.nextInt(maxValue - minValue + 1);
         }
 
         private BuffDebuffResult resolveBuffDebuffResult(Rarity resolvedRarity) {

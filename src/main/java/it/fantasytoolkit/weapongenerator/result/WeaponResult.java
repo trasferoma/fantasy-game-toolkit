@@ -8,8 +8,8 @@ import it.fantasytoolkitcore.core.model.Rarity;
 import it.fantasytoolkitcore.core.model.Weapon;
 import it.fantasytoolkitcore.core.pojo.GeneratedElementResult;
 
-public record WeaponResult(Weapon weapon, Rarity rarity, List<BuffElement> buffs, List<DebuffElement> debuffs)
-        implements GeneratedElementResult {
+public record WeaponResult(Weapon weapon, Rarity rarity, List<BuffElement> buffs, List<DebuffElement> debuffs,
+        int attack) implements GeneratedElementResult {
     public static WeaponResult.Builder builder() {
         return new WeaponResult.Builder();
     }
@@ -19,6 +19,7 @@ public record WeaponResult(Weapon weapon, Rarity rarity, List<BuffElement> buffs
         private Rarity rarity;
         private List<BuffElement> buffs;
         private List<DebuffElement> debuffs;
+        private int attack;
 
         private Builder() {
         }
@@ -43,8 +44,13 @@ public record WeaponResult(Weapon weapon, Rarity rarity, List<BuffElement> buffs
             return this;
         }
 
+        public WeaponResult.Builder attack(int attack) {
+            this.attack = attack;
+            return this;
+        }
+
         public WeaponResult build() {
-            return new WeaponResult(weapon, rarity, buffs, debuffs);
+            return new WeaponResult(weapon, rarity, buffs, debuffs, attack);
         }
     }
 }

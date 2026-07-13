@@ -78,3 +78,9 @@
 /target/surefire-reports/TEST-it.fantasytoolkit.weapongenerator.WeaponGeneratorToolTest.xml
 /target/test-classes/it/fantasytoolkit/armourgenerator/ArmourGeneratorToolTest.class
 /target/test-classes/it/fantasytoolkit/weapongenerator/WeaponGeneratorToolTest.class
+/target/classes/it/fantasytoolkit/armourgenerator/rules/ArmourRules.class
+/target/classes/it/fantasytoolkit/armourgenerator/rules/DefaultArmourRules.class
+/target/classes/it/fantasytoolkit/armourgenerator/rules/DefenseRange.class
+/target/classes/it/fantasytoolkit/weapongenerator/rules/AttackRange.class
+/target/classes/it/fantasytoolkit/weapongenerator/rules/DefaultWeaponRules.class
+/target/classes/it/fantasytoolkit/weapongenerator/rules/WeaponRules.class

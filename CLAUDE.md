@@ -78,7 +78,9 @@ JewelGeneratorTool.building().jewel(Jewel.RING).rarity(Rarity.COMMON).noStatusEf
   - **Tipo di arma**: `weapon(Weapon)` per una fissa, oppure `randomWeapon()` per una casuale tra tutti i `Weapon.values()`. Nessuno dei due o entrambi → `IllegalStateException`.
   - **Rarità**: esattamente **una** tra `rarity(Rarity)`, `maxRarity(Rarity)`, `rarityTable(RarityTable)` e `randomRarity()`. Zero o più di una fonte → `IllegalStateException`.
   - **Buff/debuff**: come Jewel, di default delega a `BuffDebuffGeneratorTool` con la rarità risolta; `noStatusEffect()` produce un'arma con `buffs`/`debuffs` vuoti, senza toccare tipo e rarità.
-- `weapongenerator.result.WeaponResult` — `record WeaponResult(Weapon weapon, Rarity rarity, List<BuffElement> buffs, List<DebuffElement> debuffs) implements GeneratedElementResult`, con `Builder` interno.
+  - **Attacco**: ogni arma ha un `attack` (int) pescato casualmente in un intervallo che dipende dalla rarità. L'intervallo è fornito da `WeaponRules` (default `DefaultWeaponRules`); `rules(WeaponRules)` è opzionale e permette range custom.
+- `weapongenerator.rules` — `AttackRange(int minValue, int maxValue)` (gemello di `BuffCombination`), interfaccia `WeaponRules` (`attackFor(Rarity)`), `DefaultWeaponRules` (mappa `Rarity` → `AttackRange`, `EnumMap`). Range di default crescenti: COMMON `[1,3]`, UNCOMMON `[3,6]`, RARE `[6,10]`, EPIC `[10,15]`, LEGENDARY `[15,25]`.
+- `weapongenerator.result.WeaponResult` — `record WeaponResult(Weapon weapon, Rarity rarity, List<BuffElement> buffs, List<DebuffElement> debuffs, int attack) implements GeneratedElementResult`, con `Builder` interno.
 
 ```java
 WeaponGeneratorTool.building().weapon(Weapon.SWORD).rarity(Rarity.EPIC).generate();
@@ -88,8 +90,9 @@ WeaponGeneratorTool.building().weapon(Weapon.BOW).rarity(Rarity.COMMON).noStatus
 
 ### `armourgenerator` — generazione di armature con rarità e status effect
 
-- `armourgenerator.ArmourGeneratorTool` — `building()` → `Builder` → `generate()` → `ArmourResult`. Identico a `WeaponGeneratorTool`, con `armour(Armour)` / `randomArmour()` al posto dell'arma. Stesse quattro fonti di rarità e stesso `noStatusEffect()`.
-- `armourgenerator.result.ArmourResult` — `record ArmourResult(Armour armour, Rarity rarity, List<BuffElement> buffs, List<DebuffElement> debuffs) implements GeneratedElementResult`, con `Builder` interno.
+- `armourgenerator.ArmourGeneratorTool` — `building()` → `Builder` → `generate()` → `ArmourResult`. Identico a `WeaponGeneratorTool`, con `armour(Armour)` / `randomArmour()` al posto dell'arma. Stesse quattro fonti di rarità e stesso `noStatusEffect()`. Ogni armatura ha un `defense` (int) pescato in un intervallo dipendente dalla rarità, fornito da `ArmourRules` (default `DefaultArmourRules`); `rules(ArmourRules)` opzionale.
+- `armourgenerator.rules` — `DefenseRange(int minValue, int maxValue)`, interfaccia `ArmourRules` (`defenseFor(Rarity)`), `DefaultArmourRules` (`EnumMap`). Range di default: COMMON `[1,2]`, UNCOMMON `[2,4]`, RARE `[4,7]`, EPIC `[7,11]`, LEGENDARY `[11,18]`.
+- `armourgenerator.result.ArmourResult` — `record ArmourResult(Armour armour, Rarity rarity, List<BuffElement> buffs, List<DebuffElement> debuffs, int defense) implements GeneratedElementResult`, con `Builder` interno.
 
 ```java
 ArmourGeneratorTool.building().armour(Armour.HELMET).rarity(Rarity.LEGENDARY).generate();

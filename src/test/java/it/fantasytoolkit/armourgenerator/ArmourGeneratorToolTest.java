@@ -3,12 +3,17 @@ package it.fantasytoolkit.armourgenerator;
 import it.fantasytoolkitcore.core.model.Armour;
 import it.fantasytoolkitcore.core.model.Rarity;
 import it.fantasytoolkit.armourgenerator.result.ArmourResult;
+import it.fantasytoolkit.armourgenerator.rules.ArmourRules;
+import it.fantasytoolkit.armourgenerator.rules.DefaultArmourRules;
+import it.fantasytoolkit.armourgenerator.rules.DefenseRange;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ArmourGeneratorToolTest {
+
+    private static final int ITERATIONS = 50;
 
     @Test
     void generatesArmourWithRequestedArmourAndRarity() {
@@ -102,6 +107,57 @@ public class ArmourGeneratorToolTest {
             assertThat(result.rarity()).isNotNull().isIn((Object[]) Rarity.values());
             assertThat(result.buffs()).isNotEmpty();
             assertThat(result.debuffs()).isNotNull();
+        }
+    }
+
+    @Test
+    void generatesCommonDefenseWithinDefaultRange() {
+        assertDefenseWithinDefaultRange(Rarity.COMMON);
+    }
+
+    @Test
+    void generatesUncommonDefenseWithinDefaultRange() {
+        assertDefenseWithinDefaultRange(Rarity.UNCOMMON);
+    }
+
+    @Test
+    void generatesRareDefenseWithinDefaultRange() {
+        assertDefenseWithinDefaultRange(Rarity.RARE);
+    }
+
+    @Test
+    void generatesEpicDefenseWithinDefaultRange() {
+        assertDefenseWithinDefaultRange(Rarity.EPIC);
+    }
+
+    @Test
+    void generatesLegendaryDefenseWithinDefaultRange() {
+        assertDefenseWithinDefaultRange(Rarity.LEGENDARY);
+    }
+
+    @Test
+    void generatesUsingCustomRules() {
+        ArmourRules customRules = rarity -> new DefenseRange(100, 100);
+
+        ArmourResult result = ArmourGeneratorTool.building()
+                .armour(Armour.HELMET)
+                .rarity(Rarity.COMMON)
+                .rules(customRules)
+                .generate();
+
+        assertThat(result.defense()).isEqualTo(100);
+    }
+
+    private void assertDefenseWithinDefaultRange(Rarity rarity) {
+        DefenseRange range = new DefaultArmourRules().defenseFor(rarity);
+
+        for (int i = 0; i < ITERATIONS; i++) {
+            ArmourResult result = ArmourGeneratorTool.building()
+                    .armour(Armour.HELMET)
+                    .rarity(rarity)
+                    .generate();
+
+            assertThat(result.defense()).isBetween(range.minValue(), range.maxValue());
         }
     }
 }
