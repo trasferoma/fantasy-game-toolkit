@@ -55,16 +55,27 @@ public class CharacterNameGeneratorToolTest {
                 .isNotBlank()
                 .contains(" ");
 
-        String[] parts = result.name().split("\\s+", 2);
-        assertThat(parts).hasSize(2);
-        assertThat(names).as("Name not present in dictionary").contains(parts[0]);
-        assertThat(nicknames).as("Nickname not present in dictionary").contains(parts[1]);
+        boolean composedOfKnownNameAndNickname = names.stream()
+                .anyMatch(name -> isComposedOf(result.name(), name, nicknames));
+
+        assertThat(composedOfKnownNameAndNickname)
+                .as("Generated name must be a known race name followed by a known nickname")
+                .isTrue();
     }
 
     @Test
     void generateWithoutRaceThrowsIllegalStateException() {
         assertThatThrownBy(() -> CharacterNameGeneratorTool.building().addNickname().generate())
                 .isInstanceOf(IllegalStateException.class);
+    }
+
+    private boolean isComposedOf(String generatedName, String name, Set<String> nicknames) {
+        String prefix = name + " ";
+        if (!generatedName.startsWith(prefix)) {
+            return false;
+        }
+        String nickname = generatedName.substring(prefix.length());
+        return nicknames.contains(nickname);
     }
 
     private void assertGeneratedNameIsKnown(Race race) {

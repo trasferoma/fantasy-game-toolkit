@@ -62,3 +62,5 @@
 /target/surefire-reports/it.fantasytoolkit.buffdebuffgenerator.BuffDebuffGeneratorToolTest.txt
 /target/surefire-reports/TEST-it.fantasytoolkit.buffdebuffgenerator.BuffDebuffGeneratorToolTest.xml
 /target/test-classes/it/fantasytoolkit/buffdebuffgenerator/BuffDebuffGeneratorToolTest.class
+/target/classes/it/fantasytoolkitcore/core/model/Armour.class
+/target/classes/it/fantasytoolkitcore/core/model/Weapon.class
