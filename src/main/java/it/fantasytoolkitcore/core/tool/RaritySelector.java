@@ -1,4 +1,7 @@
-package it.fantasytoolkitcore.core.model;
+package it.fantasytoolkitcore.core.tool;
+
+import it.fantasytoolkitcore.core.model.Rarity;
+import it.fantasytoolkitcore.core.model.RarityTable;
 
 import java.util.Random;
 

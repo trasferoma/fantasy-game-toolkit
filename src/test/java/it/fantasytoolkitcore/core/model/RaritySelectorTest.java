@@ -4,6 +4,7 @@ import java.util.EnumSet;
 import java.util.Random;
 import java.util.Set;
 
+import it.fantasytoolkitcore.core.tool.RaritySelector;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -427,6 +427,35 @@
         .<span class="m">entry</span>(<span class="t">Rarity</span>.LEGENDARY, <span class="s">1</span>)   <span class="c">// somma pesi = 100</span>
         .<span class="m">build</span>();</pre>
       </div>
+      <p>
+        Se ti serve una distribuzione <strong>già pronta</strong> senza costruire una tabella a mano,
+        usa <code>RaritySelector</code>: incapsula una <code>RarityTable</code> con i pesi standard e
+        restituisce direttamente una <code>Rarity</code> con <code>select(Random)</code>.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rarità</th><th>Probabilità (default)</th></tr></thead>
+          <tbody>
+            <tr><td><code>COMMON</code></td><td>50%</td></tr>
+            <tr><td><code>UNCOMMON</code></td><td>25%</td></tr>
+            <tr><td><code>RARE</code></td><td>12%</td></tr>
+            <tr><td><code>EPIC</code></td><td>8%</td></tr>
+            <tr><td><code>LEGENDARY</code></td><td>5%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="file">RaritySelector</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="t">Random</span> random = <span class="k">new</span> <span class="t">Random</span>();
+<span class="t">Rarity</span> rarity = <span class="t">RaritySelector</span>.<span class="m">withDefaultDistribution</span>().<span class="m">select</span>(random);
+
+<span class="c">// la rarità così estratta si passa ai generatori</span>
+<span class="t">WeaponGeneratorTool</span>.<span class="m">building</span>().<span class="m">randomWeapon</span>().<span class="m">rarity</span>(rarity).<span class="m">generate</span>();</pre>
+      </div>
+      <div class="note">
+        La <code>RarityTable</code> interna a <code>RaritySelector</code> non è esposta: il canale per
+        alimentare i generatori è <code>select(random)</code> → <code>rarity(Rarity)</code>.
+      </div>
     </section>
 
     <hr>

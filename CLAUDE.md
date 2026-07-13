@@ -35,6 +35,7 @@ Package `it.fantasytoolkitcore.core` (nota: distinto dal `groupId` `it.fantasyto
 - `core.model.Armour` — enum dei tipi di armatura: `CHESTPLATE`, `PANTS`, `BOOTS`, `GAUNTLETS`, `HELMET`, `BELT`.
 - `core.model.Characteristic` — enum delle caratteristiche di gioco: `STRENGTH`, `INTELLIGENCE`, `AGILITY`, `WISDOM`, `CHARISMA`, `RESISTANCE`, `STAMINA`, `LUCK`.
 - `core.model.RarityTable` — tabella di estrazione pesata delle rarità. Costruita con `RarityTable.builder().entry(rarity, weight)...build()`; `draw(Random)` restituisce una `Rarity` con probabilità proporzionale al peso. `build()` valida che i pesi siano positivi, le rarità uniche e la **somma dei pesi pari a 100**; altrimenti `IllegalStateException`. Immutabile (`List.copyOf`).
+- `core.model.RaritySelector` — selettore di rarità con **distribuzione di default predefinita**. `RaritySelector.withDefaultDistribution()` costruisce internamente una `RarityTable` con i pesi standard (COMMON `50`, UNCOMMON `25`, RARE `12`, EPIC `8`, LEGENDARY `5`; somma `100`); `select(Random)` delega a `RarityTable.draw(Random)` e restituisce la `Rarity` estratta. `final`, costruttore privato, `Random` fornito dall'esterno. Riusa `RarityTable`, non ne duplica la logica. La `RarityTable` interna non è esposta: per alimentare i generatori si usa `select(random)` → `rarity(Rarity)`. Uso: `RaritySelector.withDefaultDistribution().select(random)`.
 - `core.pojo.GeneratedElementResult` — marker interface comune a tutti i result.
 
 ### `namegenerator` — generazione di nomi da liste di parole del classpath
