@@ -88,3 +88,4 @@
 /target/surefire-reports/it.fantasytoolkitcore.core.model.RaritySelectorTest.txt
 /target/surefire-reports/TEST-it.fantasytoolkitcore.core.model.RaritySelectorTest.xml
 /target/test-classes/it/fantasytoolkitcore/core/model/RaritySelectorTest.class
+/target/classes/it/fantasytoolkitcore/core/tool/RaritySelector.class
