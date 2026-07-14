@@ -123,7 +123,7 @@ public final class PotionGeneratorTool {
                     .rarity(rarity)
                     .generate()
                     .buffs();
-            return buffs.get(0);
+            return buffs.getFirst();
         }
 
         private int randomValueInRange(int minValue, int maxValue, Random random) {
