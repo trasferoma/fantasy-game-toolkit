@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>fantasy-game-toolkit — Guida</title>
-<meta name="description" content="Guida d'uso del fantasy-game-toolkit: generatori Java per nomi di personaggi, gioielli e buff/debuff, tutti con la stessa sintassi fluente building()…generate().">
+<meta name="description" content="Guida d'uso del fantasy-game-toolkit: generatori Java per nomi di personaggi, gioielli, armi, armature, pozioni e buff/debuff, tutti con la stessa sintassi fluente building()…generate().">
 
 <style>
   :root {
@@ -295,6 +295,7 @@
       <a href="#gioielli">Gioielli</a>
       <a href="#armi">Armi</a>
       <a href="#armature">Armature</a>
+      <a href="#pozioni">Pozioni</a>
       <a href="#buffdebuff">Buff &amp; Debuff</a>
       <h4>Riferimento</h4>
       <a href="#estendere">Estendere il toolkit</a>
@@ -309,8 +310,8 @@
       <h1>Generatori per il tuo gioco fantasy, in una riga</h1>
       <p class="lead">
         <strong>fantasy-game-toolkit</strong> è una libreria Java di piccoli generatori — nomi di
-        personaggio, gioielli, armi, armature, buff e debuff — pensati per un'unica cosa: darti un
-        risultato pronto con <em>una sola catena di chiamate</em>.
+        personaggio, gioielli, armi, armature, pozioni, buff e debuff — pensati per un'unica cosa: darti
+        un risultato pronto con <em>una sola catena di chiamate</em>.
       </p>
       <p>
         Non c'è configurazione, non ci sono file da preparare, non c'è stato da gestire. Ogni
@@ -343,6 +344,11 @@
           <h3>🛡️ Armature</h3>
           <p>Tipo d'armatura, rarità, bonus e valore di difesa, con o senza status effect.</p>
           <a class="more" href="#armature">Vai al generatore →</a>
+        </div>
+        <div class="card">
+          <h3>🧪 Pozioni</h3>
+          <p>Famiglia (buff, debuff, rigenerazione vita/mana) e rarità, con lo stesso builder.</p>
+          <a class="more" href="#pozioni">Vai al generatore →</a>
         </div>
         <div class="card">
           <h3>✨ Buff &amp; Debuff</h3>
@@ -410,7 +416,8 @@
             <tr><td><code>Jewel</code></td><td>RING, NECKLACE, BRACELET, EARRING</td><td>Tipi di gioiello.</td></tr>
             <tr><td><code>Weapon</code></td><td>SWORD, BOW, AXE, HAMMER, SHIELD, DAGGER, CROSSBOW, BATTLEAXE, STAFF, SCEPTER</td><td>Tipi di arma.</td></tr>
             <tr><td><code>Armour</code></td><td>CHESTPLATE, PANTS, BOOTS, GAUNTLETS, HELMET, BELT</td><td>Tipi di armatura.</td></tr>
-            <tr><td><code>Characteristic</code></td><td>STRENGTH, INTELLIGENCE, AGILITY, WISDOM, CHARISMA, RESISTANCE, STAMINA, LUCK</td><td>Le caratteristiche su cui agiscono i bonus.</td></tr>
+            <tr><td><code>PotionType</code></td><td>BUFF, DEBUFF, HEALTH_REGENERATION, MANA_REGENERATION</td><td>Famiglie di pozione; la rigenerazione distingue vita e mana qui.</td></tr>
+            <tr><td><code>Characteristic</code></td><td>STRENGTH, INTELLIGENCE, AGILITY, CHARISMA, RESISTANCE, STAMINA, LUCK</td><td>Le caratteristiche su cui agiscono i bonus.</td></tr>
           </tbody>
         </table>
       </div>
@@ -684,6 +691,94 @@ result.<span class="m">attack</span>();   <span class="c">// 50</span></pre>
       <p>
         Risultato:
         <code>ArmourResult(Armour armour, Rarity rarity, List&lt;BuffElement&gt; buffs, List&lt;DebuffElement&gt; debuffs, int defense)</code>.
+      </p>
+    </section>
+
+    <section id="pozioni">
+      <h2>🧪 Pozioni</h2>
+      <p>
+        <code>PotionGeneratorTool</code> usa lo stesso builder degli altri tool, ma qui scegli una
+        <strong>famiglia</strong> (<code>PotionType</code>) invece di un tipo d'oggetto. A seconda della
+        famiglia, la pozione porta un contenuto diverso — un buff, un debuff, oppure un valore di
+        rigenerazione — mentre la <strong>rarità</strong> si sceglie con le solite quattro fonti.
+      </p>
+      <div class="code">
+        <div class="bar"><span class="file">Casi tipici</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="c">// pozione di buff, rarità fissa</span>
+<span class="t">PotionGeneratorTool</span>.<span class="m">building</span>().<span class="m">type</span>(<span class="t">PotionType</span>.BUFF).<span class="m">rarity</span>(<span class="t">Rarity</span>.EPIC).<span class="m">generate</span>();
+
+<span class="c">// pozione di debuff, rarità casuale fino a un massimo</span>
+<span class="t">PotionGeneratorTool</span>.<span class="m">building</span>().<span class="m">type</span>(<span class="t">PotionType</span>.DEBUFF).<span class="m">maxRarity</span>(<span class="t">Rarity</span>.RARE).<span class="m">generate</span>();
+
+<span class="c">// pozione di rigenerazione vita</span>
+<span class="t">PotionGeneratorTool</span>.<span class="m">building</span>().<span class="m">type</span>(<span class="t">PotionType</span>.HEALTH_REGENERATION).<span class="m">rarity</span>(<span class="t">Rarity</span>.COMMON).<span class="m">generate</span>();
+
+<span class="c">// tutto casuale</span>
+<span class="t">PotionGeneratorTool</span>.<span class="m">building</span>().<span class="m">randomType</span>().<span class="m">randomRarity</span>().<span class="m">generate</span>();</pre>
+      </div>
+
+      <h3>Scegliere la famiglia</h3>
+      <p>Esattamente <strong>una</strong> tra queste (nessuna o entrambe → <code>IllegalStateException</code>):</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metodo</th><th>Effetto</th></tr></thead>
+          <tbody>
+            <tr><td><code>type(PotionType)</code></td><td>Famiglia fissa</td></tr>
+            <tr><td><code>randomType()</code></td><td>Casuale tra tutti i <code>PotionType.values()</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>La rarità si sceglie con le stesse quattro fonti (e le stesse regole di validazione) dei <a href="#gioielli">gioielli</a>: <code>rarity</code>, <code>maxRarity</code>, <code>rarityTable</code>, <code>randomRarity</code>.</p>
+
+      <h3>Cosa contiene la pozione</h3>
+      <p>Il contenuto dipende dalla famiglia risolta:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Famiglia</th><th>Contenuto</th></tr></thead>
+          <tbody>
+            <tr><td><code>BUFF</code></td><td>Un singolo <code>BuffElement</code> (dietro le quinte usa il generatore di <a href="#buffdebuff">Buff &amp; Debuff</a>). <code>value</code> = 0, <code>debuff</code> = null.</td></tr>
+            <tr><td><code>DEBUFF</code></td><td>Un singolo <code>DebuffElement</code>. <code>value</code> = 0, <code>buff</code> = null.</td></tr>
+            <tr><td><code>HEALTH_REGENERATION</code> · <code>MANA_REGENERATION</code></td><td>Un <code>value</code> intero (punti vita/mana rigenerati), calibrato sulla rarità. <code>buff</code>/<code>debuff</code> = null.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Il valore di rigenerazione</h3>
+      <p>
+        Per le pozioni di rigenerazione, il <code>value</code> è pescato nell'intervallo associato alla
+        rarità da <code>PotionRules</code> (default <code>DefaultPotionRules</code>). Stesso intervallo
+        per vita e mana — a distinguerle è solo il <code>PotionType</code>:
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rarità</th><th>Rigenerazione (default)</th></tr></thead>
+          <tbody>
+            <tr><td><code>COMMON</code></td><td>5 – 10</td></tr>
+            <tr><td><code>UNCOMMON</code></td><td>10 – 20</td></tr>
+            <tr><td><code>RARE</code></td><td>20 – 35</td></tr>
+            <tr><td><code>EPIC</code></td><td>35 – 55</td></tr>
+            <tr><td><code>LEGENDARY</code></td><td>55 – 90</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Range personalizzabili con <code>rules(PotionRules)</code>, come per l'attacco delle armi (<code>rarity -&gt; new RegenerationRange(min, max)</code>).</p>
+
+      <div class="note warn">
+        <strong>I debuff delle pozioni sono derivati da un buff.</strong> Dato che
+        <code>BuffDebuffGeneratorTool</code> <a href="#buffdebuff">non genera ancora debuff reali</a>,
+        la pozione <code>DEBUFF</code> genera un <code>BuffElement</code> e ne riusa
+        <code>characteristic</code> e <code>value</code> per costruire un <code>DebuffElement</code>.
+        Quando il generatore di buff/debuff produrrà debuff propri, questo si potrà adeguare.
+      </div>
+      <div class="note">
+        Le pozioni <strong>non</strong> hanno <code>noStatusEffect()</code>: il contenuto (buff, debuff
+        o rigenerazione) è la ragione d'essere della pozione, non un extra opzionale.
+      </div>
+      <p>
+        Risultato:
+        <code>PotionResult(PotionType type, Rarity rarity, int value, BuffElement buff, DebuffElement debuff)</code>.
+        A differenza degli altri result usa <strong>singoli</strong> elementi (non liste): i campi non
+        pertinenti alla famiglia restano <code>null</code> o <code>0</code>.
       </p>
     </section>
 

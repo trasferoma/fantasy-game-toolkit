@@ -33,7 +33,8 @@ Package `it.fantasytoolkitcore.core` (nota: distinto dal `groupId` `it.fantasyto
 - `core.model.Jewel` — enum dei tipi di gioiello: `RING`, `NECKLACE`, `BRACELET`, `EARRING`.
 - `core.model.Weapon` — enum dei tipi di arma: `SWORD`, `BOW`, `AXE`, `HAMMER`, `SHIELD`, `DAGGER`, `CROSSBOW`, `BATTLEAXE`, `STAFF`, `SCEPTER`.
 - `core.model.Armour` — enum dei tipi di armatura: `CHESTPLATE`, `PANTS`, `BOOTS`, `GAUNTLETS`, `HELMET`, `BELT`.
-- `core.model.Characteristic` — enum delle caratteristiche di gioco: `STRENGTH`, `INTELLIGENCE`, `AGILITY`, `WISDOM`, `CHARISMA`, `RESISTANCE`, `STAMINA`, `LUCK`.
+- `core.model.PotionType` — enum delle famiglie di pozione: `BUFF`, `DEBUFF`, `HEALTH_REGENERATION`, `MANA_REGENERATION`. La distinzione vita/mana della rigenerazione vive qui (il result ha un solo `int value`).
+- `core.model.Characteristic` — enum delle caratteristiche di gioco: `STRENGTH`, `INTELLIGENCE`, `AGILITY`, `CHARISMA`, `RESISTANCE`, `STAMINA`, `LUCK`.
 - `core.model.RarityTable` — tabella di estrazione pesata delle rarità. Costruita con `RarityTable.builder().entry(rarity, weight)...build()`; `draw(Random)` restituisce una `Rarity` con probabilità proporzionale al peso. `build()` valida che i pesi siano positivi, le rarità uniche e la **somma dei pesi pari a 100**; altrimenti `IllegalStateException`. Immutabile (`List.copyOf`).
 - `core.model.RaritySelector` — selettore di rarità con **distribuzione di default predefinita**. `RaritySelector.withDefaultDistribution()` costruisce internamente una `RarityTable` con i pesi standard (COMMON `50`, UNCOMMON `25`, RARE `12`, EPIC `8`, LEGENDARY `5`; somma `100`); `select(Random)` delega a `RarityTable.draw(Random)` e restituisce la `Rarity` estratta. `final`, costruttore privato, `Random` fornito dall'esterno. Riusa `RarityTable`, non ne duplica la logica. La `RarityTable` interna non è esposta: per alimentare i generatori si usa `select(random)` → `rarity(Rarity)`. Uso: `RaritySelector.withDefaultDistribution().select(random)`.
 - `core.pojo.GeneratedElementResult` — marker interface comune a tutti i result.
@@ -101,7 +102,27 @@ ArmourGeneratorTool.building().randomArmour().rarityTable(table).generate();
 ArmourGeneratorTool.building().armour(Armour.BOOTS).randomRarity().noStatusEffect().generate();  // buffs/debuffs vuoti
 ```
 
-> **Nota sulla duplicazione.** `JewelGeneratorTool`, `WeaponGeneratorTool` e `ArmourGeneratorTool` condividono per copia la logica di risoluzione rarità + buff/debuff. Scelta coerente con lo stile self-contained del progetto; un'eventuale centralizzazione in `core` sarebbe un refactor trasversale a tutti e tre.
+### `potiongenerator` — generazione di pozioni per famiglia e rarità
+
+- `potiongenerator.PotionGeneratorTool` — `building()` → `Builder` → `generate()` → `PotionResult`. Riusa il pattern builder + risoluzione rarità di `WeaponGeneratorTool`.
+  - **Tipo (famiglia)**: `type(PotionType)` per una fissa, oppure `randomType()` per una casuale tra tutti i `PotionType.values()`. Nessuno dei due o entrambi → `IllegalStateException`.
+  - **Rarità**: esattamente **una** tra `rarity(Rarity)`, `maxRarity(Rarity)`, `rarityTable(RarityTable)` e `randomRarity()`. Zero o più di una fonte → `IllegalStateException`.
+  - **Payload per famiglia** (`generate()` fa `switch` sul tipo risolto):
+    - `BUFF` → un singolo `BuffElement` ottenuto delegando a `BuffDebuffGeneratorTool` con la rarità risolta (si prende `buffs.get(0)`: ogni rarità produce sempre ≥1 buff). `value` resta `0`, `debuff` `null`.
+    - `DEBUFF` → `BuffDebuffGeneratorTool` non genera debuff (lacuna nota, vedi `buffdebuffgenerator`), quindi si genera un `BuffElement` e lo si **converte** in `DebuffElement` (stessi `Characteristic`+`value`). `value` `0`, `buff` `null`.
+    - `HEALTH_REGENERATION` / `MANA_REGENERATION` → `value` (punti vita/mana rigenerati) pescato in un intervallo dipendente dalla rarità, fornito da `PotionRules`. `buff`/`debuff` `null`.
+  - **Niente `noStatusEffect()`**: per una pozione il payload (buff/debuff/rigenerazione) è intrinseco alla famiglia, non un extra opzionale.
+- `potiongenerator.rules` — `RegenerationRange(int minValue, int maxValue)` (gemello di `AttackRange`), interfaccia `PotionRules` (`regenerationFor(Rarity)`), `DefaultPotionRules` (mappa `Rarity` → `RegenerationRange`, `EnumMap`). Range di default (stessi per vita e mana): COMMON `[5,10]`, UNCOMMON `[10,20]`, RARE `[20,35]`, EPIC `[35,55]`, LEGENDARY `[55,90]`. `rules(PotionRules)` opzionale per range custom.
+- `potiongenerator.result.PotionResult` — `record PotionResult(PotionType type, Rarity rarity, int value, BuffElement buff, DebuffElement debuff) implements GeneratedElementResult`, con `Builder` interno. A differenza degli altri result usa **singoli** `BuffElement`/`DebuffElement` (non liste): i campi non pertinenti alla famiglia sono `null` (`buff`/`debuff`) o `0` (`value`).
+
+```java
+PotionGeneratorTool.building().type(PotionType.BUFF).rarity(Rarity.EPIC).generate();
+PotionGeneratorTool.building().type(PotionType.DEBUFF).maxRarity(Rarity.RARE).generate();
+PotionGeneratorTool.building().type(PotionType.HEALTH_REGENERATION).rarity(Rarity.COMMON).generate();  // value in [5,10]
+PotionGeneratorTool.building().randomType().randomRarity().generate();
+```
+
+> **Nota sulla duplicazione.** `JewelGeneratorTool`, `WeaponGeneratorTool`, `ArmourGeneratorTool` e `PotionGeneratorTool` condividono per copia la logica di risoluzione rarità (e i primi tre anche quella buff/debuff). Scelta coerente con lo stile self-contained del progetto; un'eventuale centralizzazione in `core` sarebbe un refactor trasversale a tutti.
 
 Non ci sono database né configurazione esterna: le liste `.txt` sono l'unica origine dati per i nomi. Aggiungere un nome = aggiungere una riga al file corrispondente.
 
