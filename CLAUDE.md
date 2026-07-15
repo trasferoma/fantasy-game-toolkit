@@ -122,7 +122,24 @@ PotionGeneratorTool.building().type(PotionType.HEALTH_REGENERATION).rarity(Rarit
 PotionGeneratorTool.building().randomType().randomRarity().generate();
 ```
 
-> **Nota sulla duplicazione.** `JewelGeneratorTool`, `WeaponGeneratorTool`, `ArmourGeneratorTool` e `PotionGeneratorTool` condividono per copia la logica di risoluzione rarità (e i primi tre anche quella buff/debuff). Scelta coerente con lo stile self-contained del progetto; un'eventuale centralizzazione in `core` sarebbe un refactor trasversale a tutti.
+### `charactergenerator` — generazione di personaggi con razza, nome e caratteristiche
+
+- `charactergenerator.CharacterGeneratorTool` — `building()` → `Builder` → `generate()` → `CharacterResult`. Modellato su `ArmourGeneratorTool` (stesso pattern builder e helper `countTrue(boolean...)`); non usa rarità né buff/debuff.
+  - **Razza**: `race(Race)` per una fissa, oppure `randomRace()` per una casuale tra tutti i `Race.values()`. Nessuno dei due o entrambi → `IllegalStateException`.
+  - **Nome**: sempre generato internamente riusando `CharacterNameGeneratorTool` con la razza risolta; `addNickname()` (opzionale) aggiunge il soprannome.
+  - **Caratteristiche**: esattamente **una** tra `characteristics(List<Characteristic>)` (lista esplicita) e `allCharacteristics()` (tutte le `Characteristic.values()`). Zero o entrambe → `IllegalStateException`. La lista passata è **de-duplicata preservando l'ordine di inserimento** (`LinkedHashSet`); se dopo il dedup è vuota → `IllegalStateException`.
+  - **Punti**: `totalPoints(int)` è **obbligatorio** (altrimenti `IllegalStateException`): è il monte punti totale distribuito tra le caratteristiche. `minCharacteristicValue(int)` è il valore minimo garantito a ogni caratteristica (**default `1`**, non negativo). Se `totalPoints < minCharacteristicValue * count` → `IllegalStateException` diagnostica.
+  - **Distribuzione**: ogni caratteristica parte dal minimo, poi i punti residui (`totalPoints - min * count`) vengono assegnati **uno alla volta a caratteristiche casuali**. Es: 3 caratteristiche, min `1`, totale `4` → tutte a `1` e l'unico punto restante va a caso a una delle tre. La somma dei valori è sempre esattamente `totalPoints`.
+- `charactergenerator.result.CharacterCharacteristic` — `record CharacterCharacteristic(Characteristic characteristic, int value)`, nello stile di `BuffElement`. Contenitore dedicato (non un `Map`) pensato per crescere con campi futuri senza toccare gli altri result.
+- `charactergenerator.result.CharacterResult` — `record CharacterResult(Race race, String name, List<CharacterCharacteristic> characteristics) implements GeneratedElementResult`, con `Builder` interno.
+
+```java
+CharacterGeneratorTool.building().race(Race.ELF).allCharacteristics().totalPoints(30).generate();
+CharacterGeneratorTool.building().randomRace().addNickname().allCharacteristics().totalPoints(50).generate();
+CharacterGeneratorTool.building().race(Race.ORC).characteristics(List.of(Characteristic.STRENGTH, Characteristic.STAMINA)).minCharacteristicValue(0).totalPoints(10).generate();
+```
+
+> **Nota sulla duplicazione.** `JewelGeneratorTool`, `WeaponGeneratorTool`, `ArmourGeneratorTool` e `PotionGeneratorTool` condividono per copia la logica di risoluzione rarità (e i primi tre anche quella buff/debuff). `CharacterGeneratorTool` riusa lo stesso pattern builder e l'helper `countTrue(boolean...)` per la validazione delle sorgenti (razza e caratteristiche), ma non ha rarità né buff/debuff. Scelta coerente con lo stile self-contained del progetto; un'eventuale centralizzazione in `core` sarebbe un refactor trasversale a tutti.
 
 Non ci sono database né configurazione esterna: le liste `.txt` sono l'unica origine dati per i nomi. Aggiungere un nome = aggiungere una riga al file corrispondente.
 

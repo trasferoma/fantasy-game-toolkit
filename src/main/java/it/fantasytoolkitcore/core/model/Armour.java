@@ -7,4 +7,5 @@ public enum Armour {
     GAUNTLETS,
     HELMET,
     BELT,
+    SHIELD,
 }
