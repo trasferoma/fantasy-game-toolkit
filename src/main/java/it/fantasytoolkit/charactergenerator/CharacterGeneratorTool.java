@@ -3,10 +3,15 @@ package it.fantasytoolkit.charactergenerator;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import it.fantasytoolkitcore.core.model.Characteristic;
 import it.fantasytoolkitcore.core.model.Race;
+import it.fantasytoolkitcore.core.model.RaceBonusTable;
 import it.fantasytoolkit.charactergenerator.result.CharacterCharacteristic;
 import it.fantasytoolkit.charactergenerator.result.CharacterResult;
 import it.fantasytoolkit.namegenerator.CharacterNameGeneratorTool;
@@ -30,6 +35,7 @@ public final class CharacterGeneratorTool {
         private int totalPoints;
         private boolean totalPointsSet;
         private int minCharacteristicValue = 1;
+        private RaceBonusTable raceBonusTable = RaceBonusTable.withDefaultBonuses();
 
         private Builder() {
         }
@@ -70,6 +76,11 @@ public final class CharacterGeneratorTool {
             return this;
         }
 
+        public Builder raceBonusTable(RaceBonusTable raceBonusTable) {
+            this.raceBonusTable = raceBonusTable;
+            return this;
+        }
+
         public CharacterResult generate() {
             validateRaceSource();
             validateCharacteristicsSource();
@@ -82,6 +93,7 @@ public final class CharacterGeneratorTool {
             List<Characteristic> selectedCharacteristics = resolveCharacteristics();
             validateEnoughPoints(selectedCharacteristics.size());
             List<CharacterCharacteristic> characteristicList = distribute(selectedCharacteristics, random);
+            characteristicList = applyRaceBonus(resolvedRace, characteristicList);
 
             return CharacterResult.builder()
                     .race(resolvedRace)
@@ -116,6 +128,47 @@ public final class CharacterGeneratorTool {
                 characteristicList.add(new CharacterCharacteristic(selectedCharacteristics.get(i), values[i]));
             }
             return characteristicList;
+        }
+
+        private List<CharacterCharacteristic> applyRaceBonus(Race race,
+                List<CharacterCharacteristic> characteristics) {
+            List<RaceBonusTable.CharacteristicBonus> bonuses = raceBonusTable.bonusesFor(race);
+            if (bonuses.isEmpty()) {
+                return characteristics;
+            }
+
+            validateAllBonusesTargetKnownCharacteristics(race, bonuses, characteristics);
+
+            Map<Characteristic, Integer> bonusValueByCharacteristic = bonuses.stream()
+                    .collect(Collectors.toMap(RaceBonusTable.CharacteristicBonus::characteristic,
+                            RaceBonusTable.CharacteristicBonus::value));
+
+            return characteristics.stream()
+                    .map(characteristic -> boostCharacteristic(characteristic, bonusValueByCharacteristic))
+                    .toList();
+        }
+
+        private CharacterCharacteristic boostCharacteristic(CharacterCharacteristic characteristic,
+                Map<Characteristic, Integer> bonusValueByCharacteristic) {
+            int bonusValue = bonusValueByCharacteristic.getOrDefault(characteristic.characteristic(), 0);
+            return new CharacterCharacteristic(characteristic.characteristic(), characteristic.value() + bonusValue);
+        }
+
+        private void validateAllBonusesTargetKnownCharacteristics(Race race,
+                List<RaceBonusTable.CharacteristicBonus> bonuses, List<CharacterCharacteristic> characteristics) {
+            Set<Characteristic> presentCharacteristics = characteristics.stream()
+                    .map(CharacterCharacteristic::characteristic)
+                    .collect(Collectors.toSet());
+
+            Optional<Characteristic> missingCharacteristic = bonuses.stream()
+                    .map(RaceBonusTable.CharacteristicBonus::characteristic)
+                    .filter(characteristic -> !presentCharacteristics.contains(characteristic))
+                    .findFirst();
+
+            if (missingCharacteristic.isPresent()) {
+                throw new IllegalStateException("Race bonus targets characteristic " + missingCharacteristic.get()
+                        + " which is not present in the generated character's characteristics for race " + race);
+            }
         }
 
         private void validateRaceSource() {

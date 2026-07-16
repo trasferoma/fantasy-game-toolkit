@@ -8,6 +8,7 @@ import it.fantasytoolkit.charactergenerator.result.CharacterCharacteristic;
 import it.fantasytoolkit.charactergenerator.result.CharacterResult;
 import it.fantasytoolkitcore.core.model.Characteristic;
 import it.fantasytoolkitcore.core.model.Race;
+import it.fantasytoolkitcore.core.model.RaceBonusTable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import tools.FileReader;
@@ -34,6 +35,7 @@ public class CharacterGeneratorToolTest {
                 .race(Race.HUMAN)
                 .characteristics(List.of(Characteristic.STRENGTH))
                 .totalPoints(1)
+                .raceBonusTable(RaceBonusTable.builder().build())
                 .generate();
 
         assertThat(result.race()).isEqualTo(Race.HUMAN);
@@ -48,6 +50,7 @@ public class CharacterGeneratorToolTest {
                     .randomRace()
                     .characteristics(List.of(Characteristic.STRENGTH))
                     .totalPoints(1)
+                    .raceBonusTable(RaceBonusTable.builder().build())
                     .generate();
 
             assertThat(result.race()).isIn((Object[]) Race.values());
@@ -74,6 +77,7 @@ public class CharacterGeneratorToolTest {
                 .race(Race.ORC)
                 .characteristics(List.of(Characteristic.STRENGTH, Characteristic.STRENGTH, Characteristic.AGILITY))
                 .totalPoints(2)
+                .raceBonusTable(RaceBonusTable.builder().build())
                 .generate();
 
         Set<Characteristic> generatedCharacteristics = extractCharacteristics(result);
@@ -89,6 +93,7 @@ public class CharacterGeneratorToolTest {
                     .race(Race.UNDEAD)
                     .allCharacteristics()
                     .totalPoints(20)
+                    .raceBonusTable(RaceBonusTable.builder().build())
                     .generate();
 
             int sum = sumOfValues(result);
@@ -151,6 +156,7 @@ public class CharacterGeneratorToolTest {
                     .race(Race.HUMAN)
                     .characteristics(List.of(Characteristic.STRENGTH, Characteristic.AGILITY, Characteristic.LUCK))
                     .totalPoints(4)
+                    .raceBonusTable(RaceBonusTable.builder().build())
                     .generate();
 
             int sum = sumOfValues(result);
@@ -172,6 +178,7 @@ public class CharacterGeneratorToolTest {
                 .addNickname()
                 .characteristics(List.of(Characteristic.STRENGTH))
                 .totalPoints(1)
+                .raceBonusTable(RaceBonusTable.builder().build())
                 .generate();
 
         assertThat(result.name()).isNotBlank().contains(" ");
@@ -260,6 +267,137 @@ public class CharacterGeneratorToolTest {
                 .generate())
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Minimum characteristic value must not be negative");
+    }
+
+    @Test
+    void defaultOrcBonusAddsThreePointsOnTopOfTotalPoints() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            CharacterResult result = CharacterGeneratorTool.building()
+                    .race(Race.ORC)
+                    .allCharacteristics()
+                    .totalPoints(20)
+                    .generate();
+
+            assertThat(sumOfValues(result)).isEqualTo(23);
+            assertThat(result.characteristics()).hasSize(Characteristic.values().length);
+        }
+    }
+
+    @Test
+    void defaultHumanBonusAddsThreePointsOnTopOfTotalPoints() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            CharacterResult result = CharacterGeneratorTool.building()
+                    .race(Race.HUMAN)
+                    .allCharacteristics()
+                    .totalPoints(20)
+                    .generate();
+
+            assertThat(sumOfValues(result)).isEqualTo(23);
+        }
+    }
+
+    @Test
+    void defaultElfBonusAddsThreePointsOnTopOfTotalPoints() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            CharacterResult result = CharacterGeneratorTool.building()
+                    .race(Race.ELF)
+                    .allCharacteristics()
+                    .totalPoints(20)
+                    .generate();
+
+            assertThat(sumOfValues(result)).isEqualTo(23);
+        }
+    }
+
+    @Test
+    void defaultUndeadBonusAddsThreePointsOnTopOfTotalPoints() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            CharacterResult result = CharacterGeneratorTool.building()
+                    .race(Race.UNDEAD)
+                    .allCharacteristics()
+                    .totalPoints(20)
+                    .generate();
+
+            assertThat(sumOfValues(result)).isEqualTo(23);
+        }
+    }
+
+    @Test
+    void defaultOrcBonusAppliesExactValuesToTargetedCharacteristics() {
+        CharacterResult result = CharacterGeneratorTool.building()
+                .race(Race.ORC)
+                .characteristics(List.of(Characteristic.STRENGTH, Characteristic.RESISTANCE))
+                .minCharacteristicValue(0)
+                .totalPoints(0)
+                .generate();
+
+        assertThat(valueOf(result, Characteristic.STRENGTH)).isEqualTo(2);
+        assertThat(valueOf(result, Characteristic.RESISTANCE)).isEqualTo(1);
+    }
+
+    @Test
+    void customRaceBonusTableOverridesTheDefaultOne() {
+        RaceBonusTable customTable = RaceBonusTable.builder()
+                .bonus(Race.HUMAN, Characteristic.STRENGTH, 5)
+                .build();
+
+        CharacterResult result = CharacterGeneratorTool.building()
+                .race(Race.HUMAN)
+                .characteristics(List.of(Characteristic.STRENGTH))
+                .minCharacteristicValue(0)
+                .totalPoints(0)
+                .raceBonusTable(customTable)
+                .generate();
+
+        assertThat(valueOf(result, Characteristic.STRENGTH)).isEqualTo(5);
+    }
+
+    @Test
+    void emptyRaceBonusTableOptsOutOfAnyBonus() {
+        CharacterResult result = CharacterGeneratorTool.building()
+                .race(Race.HUMAN)
+                .characteristics(List.of(Characteristic.STRENGTH))
+                .totalPoints(1)
+                .raceBonusTable(RaceBonusTable.builder().build())
+                .generate();
+
+        assertThat(valueOf(result, Characteristic.STRENGTH)).isEqualTo(1);
+        assertThat(sumOfValues(result)).isEqualTo(1);
+    }
+
+    @Test
+    void bonusTargetingAbsentCharacteristicThrowsIllegalStateException() {
+        assertThatThrownBy(() -> CharacterGeneratorTool.building()
+                .race(Race.ORC)
+                .characteristics(List.of(Characteristic.STRENGTH))
+                .totalPoints(1)
+                .generate())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("RESISTANCE");
+    }
+
+    @Test
+    void customRaceBonusTableWithoutEntryForTheRaceProducesNoBonus() {
+        RaceBonusTable customTable = RaceBonusTable.builder()
+                .bonus(Race.HUMAN, Characteristic.STRENGTH, 5)
+                .build();
+
+        CharacterResult result = CharacterGeneratorTool.building()
+                .race(Race.ELF)
+                .characteristics(List.of(Characteristic.STRENGTH))
+                .totalPoints(1)
+                .raceBonusTable(customTable)
+                .generate();
+
+        assertThat(valueOf(result, Characteristic.STRENGTH)).isEqualTo(1);
+    }
+
+    private int valueOf(CharacterResult result, Characteristic characteristic) {
+        return result.characteristics().stream()
+                .filter(candidate -> candidate.characteristic() == characteristic)
+                .mapToInt(CharacterCharacteristic::value)
+                .findFirst()
+                .orElseThrow();
     }
 
     private Set<Characteristic> extractCharacteristics(CharacterResult result) {
