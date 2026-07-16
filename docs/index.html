@@ -581,6 +581,23 @@ result.<span class="m">debuffs</span>();   <span class="c">// [] vuota</span></p
         <code>noStatusEffect()</code> incide <strong>solo</strong> sui bonus: tipo e rarità restano
         quelli che hai scelto, ed è combinabile con qualsiasi fonte di tipo/rarità.
       </div>
+
+      <h3>Tutte le opzioni del builder</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metodo del builder</th><th>A cosa serve</th><th>Obbligatorio</th></tr></thead>
+          <tbody>
+            <tr><td><code>jewel(Jewel)</code></td><td>Tipo di gioiello fisso</td><td>Sì · una del gruppo «tipo»</td></tr>
+            <tr><td><code>randomJewel()</code></td><td>Tipo casuale tra tutti i <code>Jewel.values()</code></td><td>Sì · una del gruppo «tipo»</td></tr>
+            <tr><td><code>rarity(Rarity)</code></td><td>Rarità fissa</td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>maxRarity(Rarity)</code></td><td>Rarità casuale fino a quel livello incluso</td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>rarityTable(RarityTable)</code></td><td>Rarità pescata da una tabella pesata</td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>randomRarity()</code></td><td>Rarità casuale tra tutte le <code>Rarity.values()</code></td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>noStatusEffect()</code></td><td>Nessun buff/debuff: <code>buffs</code> e <code>debuffs</code> vuoti</td><td>No</td></tr>
+            <tr><td><code>generate()</code></td><td>Produce il <code>JewelResult</code></td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
       <p>
         Risultato:
         <code>JewelResult(Jewel jewel, Rarity rarity, List&lt;BuffElement&gt; buffs, List&lt;DebuffElement&gt; debuffs)</code>.
@@ -607,14 +624,20 @@ result.<span class="m">debuffs</span>();   <span class="c">// [] vuota</span></p
 <span class="c">// senza bonus</span>
 <span class="t">WeaponGeneratorTool</span>.<span class="m">building</span>().<span class="m">weapon</span>(<span class="t">Weapon</span>.BOW).<span class="m">rarity</span>(<span class="t">Rarity</span>.COMMON).<span class="m">noStatusEffect</span>().<span class="m">generate</span>();</pre>
       </div>
+      <h3>Tutte le opzioni del builder</h3>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Cosa scegli</th><th>Metodi (esattamente uno per gruppo)</th></tr></thead>
+          <thead><tr><th>Metodo del builder</th><th>A cosa serve</th><th>Obbligatorio</th></tr></thead>
           <tbody>
-            <tr><td>Tipo d'arma</td><td><code>weapon(Weapon)</code> · <code>randomWeapon()</code></td></tr>
-            <tr><td>Rarità</td><td><code>rarity(Rarity)</code> · <code>maxRarity(Rarity)</code> · <code>rarityTable(RarityTable)</code> · <code>randomRarity()</code></td></tr>
-            <tr><td>Bonus</td><td>automatici · <code>noStatusEffect()</code> per ometterli</td></tr>
-            <tr><td>Attacco</td><td>automatico dalla rarità · <code>rules(WeaponRules)</code> per range custom</td></tr>
+            <tr><td><code>weapon(Weapon)</code></td><td>Tipo d'arma fisso</td><td>Sì · una del gruppo «tipo»</td></tr>
+            <tr><td><code>randomWeapon()</code></td><td>Tipo casuale tra tutti i <code>Weapon.values()</code></td><td>Sì · una del gruppo «tipo»</td></tr>
+            <tr><td><code>rarity(Rarity)</code></td><td>Rarità fissa</td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>maxRarity(Rarity)</code></td><td>Rarità casuale fino a quel livello incluso</td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>rarityTable(RarityTable)</code></td><td>Rarità pescata da una tabella pesata</td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>randomRarity()</code></td><td>Rarità casuale tra tutte le <code>Rarity.values()</code></td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>noStatusEffect()</code></td><td>Nessun buff/debuff: <code>buffs</code> e <code>debuffs</code> vuoti</td><td>No</td></tr>
+            <tr><td><code>rules(WeaponRules)</code></td><td>Intervalli di attacco per rarità personalizzati</td><td>No · default <code>DefaultWeaponRules</code></td></tr>
+            <tr><td><code>generate()</code></td><td>Produce il <code>WeaponResult</code></td><td>—</td></tr>
           </tbody>
         </table>
       </div>
@@ -695,6 +718,24 @@ result.<span class="m">attack</span>();   <span class="c">// 50</span></pre>
         Range personalizzabili con <code>rules(ArmourRules)</code>, esattamente come per l'attacco
         delle armi (<code>rarity -&gt; new DefenseRange(min, max)</code>).
       </p>
+
+      <h3>Tutte le opzioni del builder</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metodo del builder</th><th>A cosa serve</th><th>Obbligatorio</th></tr></thead>
+          <tbody>
+            <tr><td><code>armour(Armour)</code></td><td>Tipo d'armatura fisso</td><td>Sì · una del gruppo «tipo»</td></tr>
+            <tr><td><code>randomArmour()</code></td><td>Tipo casuale tra tutti gli <code>Armour.values()</code></td><td>Sì · una del gruppo «tipo»</td></tr>
+            <tr><td><code>rarity(Rarity)</code></td><td>Rarità fissa</td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>maxRarity(Rarity)</code></td><td>Rarità casuale fino a quel livello incluso</td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>rarityTable(RarityTable)</code></td><td>Rarità pescata da una tabella pesata</td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>randomRarity()</code></td><td>Rarità casuale tra tutte le <code>Rarity.values()</code></td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>noStatusEffect()</code></td><td>Nessun buff/debuff: <code>buffs</code> e <code>debuffs</code> vuoti</td><td>No</td></tr>
+            <tr><td><code>rules(ArmourRules)</code></td><td>Intervalli di difesa per rarità personalizzati</td><td>No · default <code>DefaultArmourRules</code></td></tr>
+            <tr><td><code>generate()</code></td><td>Produce l'<code>ArmourResult</code></td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
       <p>
         Risultato:
         <code>ArmourResult(Armour armour, Rarity rarity, List&lt;BuffElement&gt; buffs, List&lt;DebuffElement&gt; debuffs, int defense)</code>.
@@ -780,6 +821,23 @@ result.<span class="m">attack</span>();   <span class="c">// 50</span></pre>
       <div class="note">
         Le pozioni <strong>non</strong> hanno <code>noStatusEffect()</code>: il contenuto (buff, debuff
         o rigenerazione) è la ragione d'essere della pozione, non un extra opzionale.
+      </div>
+
+      <h3>Tutte le opzioni del builder</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metodo del builder</th><th>A cosa serve</th><th>Obbligatorio</th></tr></thead>
+          <tbody>
+            <tr><td><code>type(PotionType)</code></td><td>Famiglia fissa</td><td>Sì · una del gruppo «famiglia»</td></tr>
+            <tr><td><code>randomType()</code></td><td>Famiglia casuale tra tutti i <code>PotionType.values()</code></td><td>Sì · una del gruppo «famiglia»</td></tr>
+            <tr><td><code>rarity(Rarity)</code></td><td>Rarità fissa</td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>maxRarity(Rarity)</code></td><td>Rarità casuale fino a quel livello incluso</td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>rarityTable(RarityTable)</code></td><td>Rarità pescata da una tabella pesata</td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>randomRarity()</code></td><td>Rarità casuale tra tutte le <code>Rarity.values()</code></td><td>Sì · una del gruppo «rarità»</td></tr>
+            <tr><td><code>rules(PotionRules)</code></td><td>Intervalli di rigenerazione per rarità personalizzati</td><td>No · default <code>DefaultPotionRules</code></td></tr>
+            <tr><td><code>generate()</code></td><td>Produce il <code>PotionResult</code></td><td>—</td></tr>
+          </tbody>
+        </table>
       </div>
       <p>
         Risultato:
@@ -912,6 +970,27 @@ result.<span class="m">attack</span>();   <span class="c">// 50</span></pre>
         Il canale è <code>System.out</code> (nessuna dipendenza di logging, coerente con lo stile
         self-contained del toolkit). Le righe dei bonus sono ordinate per caratteristica, quindi
         stabili tra un'esecuzione e l'altra; i valori distribuiti restano invece casuali.
+      </div>
+      <h3>Tutte le opzioni del builder</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metodo del builder</th><th>A cosa serve</th><th>Obbligatorio</th></tr></thead>
+          <tbody>
+            <tr><td><code>race(Race)</code></td><td>Razza fissa</td><td>Sì · una del gruppo «razza»</td></tr>
+            <tr><td><code>randomRace()</code></td><td>Razza casuale tra tutti i <code>Race.values()</code></td><td>Sì · una del gruppo «razza»</td></tr>
+            <tr><td><code>characterClass(CharacterClass)</code></td><td>Classe fissa</td><td>Sì · una del gruppo «classe»</td></tr>
+            <tr><td><code>randomClass()</code></td><td>Classe casuale tra tutti i <code>CharacterClass.values()</code></td><td>Sì · una del gruppo «classe»</td></tr>
+            <tr><td><code>characteristics(List&lt;Characteristic&gt;)</code></td><td>Caratteristiche esplicite, de-duplicate mantenendo l'ordine</td><td>Sì · una del gruppo «caratteristiche»</td></tr>
+            <tr><td><code>allCharacteristics()</code></td><td>Tutte le <code>Characteristic.values()</code></td><td>Sì · una del gruppo «caratteristiche»</td></tr>
+            <tr><td><code>totalPoints(int)</code></td><td>Monte punti totale da distribuire tra le caratteristiche</td><td>Sì</td></tr>
+            <tr><td><code>minCharacteristicValue(int)</code></td><td>Minimo garantito a ogni caratteristica (non negativo)</td><td>No · default <code>1</code></td></tr>
+            <tr><td><code>addNickname()</code></td><td>Aggiunge un soprannome al nome generato</td><td>No</td></tr>
+            <tr><td><code>raceBonusTable(RaceBonusTable)</code></td><td>Tabella dei bonus di razza (vuota = opt-out)</td><td>No · default <code>withDefaultBonuses()</code></td></tr>
+            <tr><td><code>classBonusTable(ClassBonusTable)</code></td><td>Tabella dei bonus di classe (vuota = opt-out)</td><td>No · default <code>withDefaultBonuses()</code></td></tr>
+            <tr><td><code>verbose()</code></td><td>Logga le fasi della generazione su <code>System.out</code></td><td>No · default off</td></tr>
+            <tr><td><code>generate()</code></td><td>Produce il <code>CharacterResult</code></td><td>—</td></tr>
+          </tbody>
+        </table>
       </div>
       <p>
         Risultato:
