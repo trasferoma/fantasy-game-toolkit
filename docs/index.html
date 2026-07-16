@@ -296,6 +296,7 @@
       <a href="#armi">Armi</a>
       <a href="#armature">Armature</a>
       <a href="#pozioni">Pozioni</a>
+      <a href="#personaggi">Personaggi</a>
       <a href="#buffdebuff">Buff &amp; Debuff</a>
       <h4>Riferimento</h4>
       <a href="#estendere">Estendere il toolkit</a>
@@ -309,8 +310,8 @@
       <div class="eyebrow">Guida d'uso</div>
       <h1>Generatori per il tuo gioco fantasy, in una riga</h1>
       <p class="lead">
-        <strong>fantasy-game-toolkit</strong> è una libreria Java di piccoli generatori — nomi di
-        personaggio, gioielli, armi, armature, pozioni, buff e debuff — pensati per un'unica cosa: darti
+        <strong>fantasy-game-toolkit</strong> è una libreria Java di piccoli generatori — personaggi e i
+        loro nomi, gioielli, armi, armature, pozioni, buff e debuff — pensati per un'unica cosa: darti
         un risultato pronto con <em>una sola catena di chiamate</em>.
       </p>
       <p>
@@ -349,6 +350,11 @@
           <h3>🧪 Pozioni</h3>
           <p>Famiglia (buff, debuff, rigenerazione vita/mana) e rarità, con lo stesso builder.</p>
           <a class="more" href="#pozioni">Vai al generatore →</a>
+        </div>
+        <div class="card">
+          <h3>🧙 Personaggi</h3>
+          <p>Razza, classe, nome e caratteristiche con punti distribuiti e bonus di razza e classe.</p>
+          <a class="more" href="#personaggi">Vai al generatore →</a>
         </div>
         <div class="card">
           <h3>✨ Buff &amp; Debuff</h3>
@@ -418,6 +424,7 @@
             <tr><td><code>Armour</code></td><td>CHESTPLATE, PANTS, BOOTS, GAUNTLETS, HELMET, BELT</td><td>Tipi di armatura.</td></tr>
             <tr><td><code>PotionType</code></td><td>BUFF, DEBUFF, HEALTH_REGENERATION, MANA_REGENERATION</td><td>Famiglie di pozione; la rigenerazione distingue vita e mana qui.</td></tr>
             <tr><td><code>Characteristic</code></td><td>STRENGTH, INTELLIGENCE, AGILITY, CHARISMA, RESISTANCE, STAMINA, LUCK</td><td>Le caratteristiche su cui agiscono i bonus.</td></tr>
+            <tr><td><code>CharacterClass</code></td><td>WARRIOR, MAGE, THIEF, RANGER</td><td>Classi del personaggio; ognuna ha bonus tematici (come le razze).</td></tr>
           </tbody>
         </table>
       </div>
@@ -779,6 +786,137 @@ result.<span class="m">attack</span>();   <span class="c">// 50</span></pre>
         <code>PotionResult(PotionType type, Rarity rarity, int value, BuffElement buff, DebuffElement debuff)</code>.
         A differenza degli altri result usa <strong>singoli</strong> elementi (non liste): i campi non
         pertinenti alla famiglia restano <code>null</code> o <code>0</code>.
+      </p>
+    </section>
+
+    <section id="personaggi">
+      <h2>🧙 Personaggi</h2>
+      <p>
+        <code>CharacterGeneratorTool</code> mette insieme un personaggio completo: <strong>razza</strong>,
+        <strong>classe</strong>, <strong>nome</strong> e <strong>caratteristiche</strong> con i punti
+        distribuiti. Non usa rarità né status effect come gli oggetti, ma applica alle caratteristiche
+        i <strong>bonus di razza e di classe</strong>. Stesso builder fluente degli altri tool.
+      </p>
+      <div class="code">
+        <div class="bar"><span class="file">Casi tipici</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="c">// razza e classe fisse, tutte le caratteristiche</span>
+<span class="t">CharacterGeneratorTool</span>.<span class="m">building</span>().<span class="m">race</span>(<span class="t">Race</span>.ELF).<span class="m">characterClass</span>(<span class="t">CharacterClass</span>.MAGE).<span class="m">allCharacteristics</span>().<span class="m">totalPoints</span>(<span class="s">30</span>).<span class="m">generate</span>();
+
+<span class="c">// tutto casuale, con soprannome</span>
+<span class="t">CharacterGeneratorTool</span>.<span class="m">building</span>().<span class="m">randomRace</span>().<span class="m">randomClass</span>().<span class="m">addNickname</span>().<span class="m">allCharacteristics</span>().<span class="m">totalPoints</span>(<span class="s">50</span>).<span class="m">generate</span>();
+
+<span class="c">// senza bonus di razza né di classe (opt-out con tabelle vuote)</span>
+<span class="t">CharacterGeneratorTool</span>.<span class="m">building</span>().<span class="m">race</span>(<span class="t">Race</span>.HUMAN).<span class="m">characterClass</span>(<span class="t">CharacterClass</span>.THIEF)
+        .<span class="m">characteristics</span>(<span class="t">List</span>.<span class="m">of</span>(<span class="t">Characteristic</span>.STRENGTH)).<span class="m">totalPoints</span>(<span class="s">1</span>)
+        .<span class="m">raceBonusTable</span>(<span class="t">RaceBonusTable</span>.<span class="m">builder</span>().<span class="m">build</span>())
+        .<span class="m">classBonusTable</span>(<span class="t">ClassBonusTable</span>.<span class="m">builder</span>().<span class="m">build</span>()).<span class="m">generate</span>();</pre>
+      </div>
+
+      <h3>Razza, classe e caratteristiche</h3>
+      <p>
+        Razza e classe funzionano allo stesso modo: per ognuna scegli esattamente <strong>una</strong>
+        fonte (nessuna o entrambe → <code>IllegalStateException</code>). Ogni personaggio
+        <strong>ha sempre</strong> una razza e una classe.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metodo</th><th>Effetto</th></tr></thead>
+          <tbody>
+            <tr><td><code>race(Race)</code></td><td>Razza fissa</td></tr>
+            <tr><td><code>randomRace()</code></td><td>Casuale tra tutti i <code>Race.values()</code></td></tr>
+            <tr><td><code>characterClass(CharacterClass)</code></td><td>Classe fissa</td></tr>
+            <tr><td><code>randomClass()</code></td><td>Casuale tra tutti i <code>CharacterClass.values()</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Le caratteristiche si scelgono con esattamente <strong>una</strong> tra
+        <code>characteristics(List&lt;Characteristic&gt;)</code> (lista esplicita, <strong>de-duplicata
+        preservando l'ordine</strong>) e <code>allCharacteristics()</code> (tutte le
+        <code>Characteristic.values()</code>). Nessuna o entrambe → <code>IllegalStateException</code>.
+        Il <strong>nome</strong> è generato internamente riusando il generatore di
+        <a href="#nomi">nomi</a> con la razza risolta; <code>addNickname()</code> aggiunge il soprannome.
+      </p>
+
+      <h3>I punti e la distribuzione</h3>
+      <p>
+        <code>totalPoints(int)</code> è <strong>obbligatorio</strong> (altrimenti
+        <code>IllegalStateException</code>): è il monte punti totale distribuito tra le caratteristiche.
+        <code>minCharacteristicValue(int)</code> è il minimo garantito a ognuna (<strong>default 1</strong>,
+        non negativo). Se <code>totalPoints &lt; min * numeroCaratteristiche</code> → eccezione diagnostica.
+      </p>
+      <p>
+        Ogni caratteristica parte dal minimo, poi i punti residui vengono assegnati <strong>uno alla
+        volta a caratteristiche casuali</strong>. La somma dei valori <em>dopo la sola distribuzione</em>
+        è sempre esattamente <code>totalPoints</code>.
+      </p>
+
+      <h3>I bonus di razza e classe</h3>
+      <p>
+        Come <strong>ultimi passaggi</strong> (prima la razza, poi la classe) vengono applicati bonus
+        <strong>additivi</strong> alle caratteristiche, definiti da <code>RaceBonusTable</code> e
+        <code>ClassBonusTable</code>. Con le tabelle di default attive la somma finale è
+        <code>totalPoints + bonusRazza + bonusClasse</code>.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Razza</th><th>Bonus (default)</th><th>Classe</th><th>Bonus (default)</th></tr></thead>
+          <tbody>
+            <tr><td><code>HUMAN</code></td><td>STRENGTH +1, AGILITY +1, INTELLIGENCE +1</td><td><code>WARRIOR</code></td><td>STRENGTH +2, STAMINA +1</td></tr>
+            <tr><td><code>ELF</code></td><td>AGILITY +2, INTELLIGENCE +1</td><td><code>MAGE</code></td><td>INTELLIGENCE +2, CHARISMA +1</td></tr>
+            <tr><td><code>ORC</code></td><td>STRENGTH +2, RESISTANCE +1</td><td><code>THIEF</code></td><td>AGILITY +2, LUCK +1</td></tr>
+            <tr><td><code>UNDEAD</code></td><td>RESISTANCE +2, STAMINA +1</td><td><code>RANGER</code></td><td>AGILITY +2, RESISTANCE +1</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Le tabelle si sovrascrivono con <code>raceBonusTable(RaceBonusTable)</code> e
+        <code>classBonusTable(ClassBonusTable)</code>; una tabella <strong>vuota</strong>
+        (<code>builder().build()</code>) è l'opt-out dai relativi bonus.
+      </p>
+      <div class="note warn">
+        <strong>Un bonus su una caratteristica assente fa fallire la generazione.</strong> Se un bonus
+        (di razza o di classe) punta a una caratteristica <strong>non presente</strong> nel personaggio
+        → <code>IllegalStateException</code> (non viene ignorato né aggiunto). Con le tabelle di default
+        attive non puoi quindi generare un personaggio con un sottoinsieme di caratteristiche che
+        escluda i target dei bonus della razza/classe risolte: usa <code>allCharacteristics()</code>
+        oppure una tabella vuota.
+      </div>
+      <h3>Vedere le fasi: <code>verbose()</code></h3>
+      <p>
+        <code>verbose()</code> (opzionale) fa loggare a <code>generate()</code> i passaggi della
+        generazione su <code>System.out</code>, con prefisso <code>[CharacterGenerator]</code>: razza e
+        classe risolte, nome, caratteristiche, punti, stato dopo la distribuzione e soprattutto
+        <strong>quali e quanto</strong> bonus vengono applicati per razza e per classe. È solo per
+        capire cosa succede: senza <code>verbose()</code> non stampa nulla e i valori generati non
+        cambiano.
+      </p>
+      <div class="code">
+        <div class="bar"><span class="file">Con verbose()</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="t">CharacterGeneratorTool</span>.<span class="m">building</span>().<span class="m">race</span>(<span class="t">Race</span>.ORC).<span class="m">characterClass</span>(<span class="t">CharacterClass</span>.WARRIOR)
+        .<span class="m">allCharacteristics</span>().<span class="m">totalPoints</span>(<span class="s">20</span>).<span class="m">verbose</span>().<span class="m">generate</span>();</pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="file">Output su System.out</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="c">[CharacterGenerator] Resolved race: ORC (fixed)</span>
+<span class="c">[CharacterGenerator] Resolved class: WARRIOR (fixed)</span>
+<span class="c">[CharacterGenerator] Generated name: Zugor</span>
+<span class="c">[CharacterGenerator] Selected characteristics: [STRENGTH, INTELLIGENCE, AGILITY, CHARISMA, RESISTANCE, STAMINA, LUCK]</span>
+<span class="c">[CharacterGenerator] Points to distribute: 20 (min 1 per characteristic)</span>
+<span class="c">[CharacterGenerator] After distribution (sum 20): STRENGTH=1, INTELLIGENCE=3, AGILITY=3, CHARISMA=2, RESISTANCE=4, STAMINA=4, LUCK=3</span>
+<span class="c">[CharacterGenerator] Applying bonus from race ORC (total +3): STRENGTH +2, RESISTANCE +1</span>
+<span class="c">[CharacterGenerator] Applying bonus from character class WARRIOR (total +3): STRENGTH +2, STAMINA +1</span>
+<span class="c">[CharacterGenerator] Final character (sum 26): STRENGTH=5, INTELLIGENCE=3, AGILITY=3, CHARISMA=2, RESISTANCE=5, STAMINA=5, LUCK=3</span></pre>
+      </div>
+      <div class="note">
+        Il canale è <code>System.out</code> (nessuna dipendenza di logging, coerente con lo stile
+        self-contained del toolkit). Le righe dei bonus sono ordinate per caratteristica, quindi
+        stabili tra un'esecuzione e l'altra; i valori distribuiti restano invece casuali.
+      </div>
+      <p>
+        Risultato:
+        <code>CharacterResult(Race race, CharacterClass characterClass, String name, List&lt;CharacterCharacteristic&gt; characteristics)</code>,
+        dove <code>CharacterCharacteristic</code> è un <code>record (Characteristic characteristic, int value)</code>.
       </p>
     </section>
 

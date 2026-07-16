@@ -1,6 +1,7 @@
 package it.fantasytoolkit.charactergenerator;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +10,9 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import it.fantasytoolkitcore.core.model.CharacterClass;
 import it.fantasytoolkitcore.core.model.Characteristic;
+import it.fantasytoolkitcore.core.model.ClassBonusTable;
 import it.fantasytoolkitcore.core.model.Race;
 import it.fantasytoolkitcore.core.model.RaceBonusTable;
 import it.fantasytoolkit.charactergenerator.result.CharacterCharacteristic;
@@ -29,13 +32,17 @@ public final class CharacterGeneratorTool {
 
         private Race race;
         private boolean randomRace;
+        private CharacterClass characterClass;
+        private boolean randomClass;
         private boolean withNickname;
+        private boolean verbose;
         private List<Characteristic> characteristics;
         private boolean allCharacteristics;
         private int totalPoints;
         private boolean totalPointsSet;
         private int minCharacteristicValue = 1;
         private RaceBonusTable raceBonusTable = RaceBonusTable.withDefaultBonuses();
+        private ClassBonusTable classBonusTable = ClassBonusTable.withDefaultBonuses();
 
         private Builder() {
         }
@@ -50,8 +57,23 @@ public final class CharacterGeneratorTool {
             return this;
         }
 
+        public Builder characterClass(CharacterClass characterClass) {
+            this.characterClass = characterClass;
+            return this;
+        }
+
+        public Builder randomClass() {
+            this.randomClass = true;
+            return this;
+        }
+
         public Builder addNickname() {
             this.withNickname = true;
+            return this;
+        }
+
+        public Builder verbose() {
+            this.verbose = true;
             return this;
         }
 
@@ -81,22 +103,41 @@ public final class CharacterGeneratorTool {
             return this;
         }
 
+        public Builder classBonusTable(ClassBonusTable classBonusTable) {
+            this.classBonusTable = classBonusTable;
+            return this;
+        }
+
         public CharacterResult generate() {
             validateRaceSource();
+            validateClassSource();
             validateCharacteristicsSource();
             validateTotalPoints();
             validateMinCharacteristicValue();
 
             Random random = new Random();
             Race resolvedRace = resolveRace(random);
+            logPhase("Resolved race: " + resolvedRace + (randomRace ? " (random)" : " (fixed)"));
+            CharacterClass resolvedClass = resolveClass(random);
+            logPhase("Resolved class: " + resolvedClass + (randomClass ? " (random)" : " (fixed)"));
             String name = generateName(resolvedRace);
+            logPhase("Generated name: " + name);
             List<Characteristic> selectedCharacteristics = resolveCharacteristics();
+            logPhase("Selected characteristics: " + selectedCharacteristics);
             validateEnoughPoints(selectedCharacteristics.size());
+            logPhase("Points to distribute: " + totalPoints + " (min " + minCharacteristicValue
+                    + " per characteristic)");
             List<CharacterCharacteristic> characteristicList = distribute(selectedCharacteristics, random);
+            logPhase("After distribution (sum " + sumOf(characteristicList) + "): "
+                    + describeCharacteristics(characteristicList));
             characteristicList = applyRaceBonus(resolvedRace, characteristicList);
+            characteristicList = applyClassBonus(resolvedClass, characteristicList);
+            logPhase("Final character (sum " + sumOf(characteristicList) + "): "
+                    + describeCharacteristics(characteristicList));
 
             return CharacterResult.builder()
                     .race(resolvedRace)
+                    .characterClass(resolvedClass)
                     .name(name)
                     .characteristics(characteristicList)
                     .build();
@@ -132,20 +173,54 @@ public final class CharacterGeneratorTool {
 
         private List<CharacterCharacteristic> applyRaceBonus(Race race,
                 List<CharacterCharacteristic> characteristics) {
-            List<RaceBonusTable.CharacteristicBonus> bonuses = raceBonusTable.bonusesFor(race);
-            if (bonuses.isEmpty()) {
+            Map<Characteristic, Integer> bonusValueByCharacteristic = raceBonusTable.bonusesFor(race).stream()
+                    .collect(Collectors.toMap(RaceBonusTable.CharacteristicBonus::characteristic,
+                            RaceBonusTable.CharacteristicBonus::value));
+
+            return applyBonuses("race " + race, bonusValueByCharacteristic, characteristics);
+        }
+
+        private List<CharacterCharacteristic> applyClassBonus(CharacterClass characterClass,
+                List<CharacterCharacteristic> characteristics) {
+            Map<Characteristic, Integer> bonusValueByCharacteristic = classBonusTable.bonusesFor(characterClass)
+                    .stream()
+                    .collect(Collectors.toMap(ClassBonusTable.CharacteristicBonus::characteristic,
+                            ClassBonusTable.CharacteristicBonus::value));
+
+            return applyBonuses("character class " + characterClass, bonusValueByCharacteristic, characteristics);
+        }
+
+        private List<CharacterCharacteristic> applyBonuses(String bonusSourceDescription,
+                Map<Characteristic, Integer> bonusValueByCharacteristic,
+                List<CharacterCharacteristic> characteristics) {
+            if (bonusValueByCharacteristic.isEmpty()) {
+                logPhase("No bonus from " + bonusSourceDescription);
                 return characteristics;
             }
 
-            validateAllBonusesTargetKnownCharacteristics(race, bonuses, characteristics);
+            logPhase("Applying bonus from " + bonusSourceDescription + " (total +"
+                    + sumOfBonusValues(bonusValueByCharacteristic) + "): "
+                    + describeBonuses(bonusValueByCharacteristic));
 
-            Map<Characteristic, Integer> bonusValueByCharacteristic = bonuses.stream()
-                    .collect(Collectors.toMap(RaceBonusTable.CharacteristicBonus::characteristic,
-                            RaceBonusTable.CharacteristicBonus::value));
+            validateAllBonusesTargetKnownCharacteristics(bonusSourceDescription, bonusValueByCharacteristic,
+                    characteristics);
 
             return characteristics.stream()
                     .map(characteristic -> boostCharacteristic(characteristic, bonusValueByCharacteristic))
                     .toList();
+        }
+
+        private int sumOfBonusValues(Map<Characteristic, Integer> bonusValueByCharacteristic) {
+            return bonusValueByCharacteristic.values().stream()
+                    .mapToInt(Integer::intValue)
+                    .sum();
+        }
+
+        private String describeBonuses(Map<Characteristic, Integer> bonusValueByCharacteristic) {
+            return bonusValueByCharacteristic.entrySet().stream()
+                    .sorted(Comparator.comparingInt(entry -> entry.getKey().ordinal()))
+                    .map(entry -> entry.getKey() + " +" + entry.getValue())
+                    .collect(Collectors.joining(", "));
         }
 
         private CharacterCharacteristic boostCharacteristic(CharacterCharacteristic characteristic,
@@ -154,20 +229,21 @@ public final class CharacterGeneratorTool {
             return new CharacterCharacteristic(characteristic.characteristic(), characteristic.value() + bonusValue);
         }
 
-        private void validateAllBonusesTargetKnownCharacteristics(Race race,
-                List<RaceBonusTable.CharacteristicBonus> bonuses, List<CharacterCharacteristic> characteristics) {
+        private void validateAllBonusesTargetKnownCharacteristics(String bonusSourceDescription,
+                Map<Characteristic, Integer> bonusValueByCharacteristic,
+                List<CharacterCharacteristic> characteristics) {
             Set<Characteristic> presentCharacteristics = characteristics.stream()
                     .map(CharacterCharacteristic::characteristic)
                     .collect(Collectors.toSet());
 
-            Optional<Characteristic> missingCharacteristic = bonuses.stream()
-                    .map(RaceBonusTable.CharacteristicBonus::characteristic)
+            Optional<Characteristic> missingCharacteristic = bonusValueByCharacteristic.keySet().stream()
                     .filter(characteristic -> !presentCharacteristics.contains(characteristic))
                     .findFirst();
 
             if (missingCharacteristic.isPresent()) {
-                throw new IllegalStateException("Race bonus targets characteristic " + missingCharacteristic.get()
-                        + " which is not present in the generated character's characteristics for race " + race);
+                throw new IllegalStateException("Bonus from " + bonusSourceDescription + " targets characteristic "
+                        + missingCharacteristic.get()
+                        + " which is not present in the generated character's characteristics");
             }
         }
 
@@ -179,6 +255,17 @@ public final class CharacterGeneratorTool {
             }
             if (raceSourceCount == 0) {
                 throw new IllegalStateException("Race must be set before generating a character");
+            }
+        }
+
+        private void validateClassSource() {
+            int classSourceCount = countTrue(characterClass != null, randomClass);
+
+            if (classSourceCount > 1) {
+                throw new IllegalStateException("Only one of characterClass or randomClass can be used together");
+            }
+            if (classSourceCount == 0) {
+                throw new IllegalStateException("Character class must be set before generating a character");
             }
         }
 
@@ -223,6 +310,14 @@ public final class CharacterGeneratorTool {
             return race;
         }
 
+        private CharacterClass resolveClass(Random random) {
+            if (randomClass) {
+                CharacterClass[] characterClasses = CharacterClass.values();
+                return characterClasses[random.nextInt(characterClasses.length)];
+            }
+            return characterClass;
+        }
+
         private List<Characteristic> resolveCharacteristics() {
             if (allCharacteristics) {
                 return List.of(Characteristic.values());
@@ -243,6 +338,24 @@ public final class CharacterGeneratorTool {
                 }
             }
             return count;
+        }
+
+        private int sumOf(List<CharacterCharacteristic> characteristics) {
+            return characteristics.stream()
+                    .mapToInt(CharacterCharacteristic::value)
+                    .sum();
+        }
+
+        private String describeCharacteristics(List<CharacterCharacteristic> characteristics) {
+            return characteristics.stream()
+                    .map(characteristic -> characteristic.characteristic() + "=" + characteristic.value())
+                    .collect(Collectors.joining(", "));
+        }
+
+        private void logPhase(String message) {
+            if (verbose) {
+                System.out.println("[CharacterGenerator] " + message);
+            }
         }
     }
 }

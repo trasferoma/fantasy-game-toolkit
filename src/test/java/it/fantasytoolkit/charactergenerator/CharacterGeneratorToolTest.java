@@ -1,15 +1,22 @@
 package it.fantasytoolkit.charactergenerator;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import it.fantasytoolkit.charactergenerator.result.CharacterCharacteristic;
 import it.fantasytoolkit.charactergenerator.result.CharacterResult;
+import it.fantasytoolkitcore.core.model.CharacterClass;
 import it.fantasytoolkitcore.core.model.Characteristic;
+import it.fantasytoolkitcore.core.model.ClassBonusTable;
 import it.fantasytoolkitcore.core.model.Race;
 import it.fantasytoolkitcore.core.model.RaceBonusTable;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tools.FileReader;
 
@@ -22,9 +29,38 @@ public class CharacterGeneratorToolTest {
 
     static FileReader reader;
 
+    private PrintStream originalSystemOut;
+    private ByteArrayOutputStream capturedOutput;
+
     @BeforeAll
     public static void setup() {
         reader = new FileReader();
+    }
+/*
+    @BeforeEach
+    void captureSystemOut() {
+        originalSystemOut = System.out;
+        capturedOutput = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(capturedOutput, true, StandardCharsets.UTF_8));
+    }
+*/
+    @AfterEach
+    void restoreSystemOut() {
+        System.setOut(originalSystemOut);
+    }
+
+    @Test
+    void simple() {
+        CharacterResult result = CharacterGeneratorTool.building()
+                .randomRace()
+                .randomClass()
+                .allCharacteristics()
+                .totalPoints(10)
+                .verbose()
+                .generate();
+
+        System.out.println(result);
+
     }
 
     @Test
@@ -33,9 +69,11 @@ public class CharacterGeneratorToolTest {
 
         CharacterResult result = CharacterGeneratorTool.building()
                 .race(Race.HUMAN)
+                .characterClass(CharacterClass.WARRIOR)
                 .characteristics(List.of(Characteristic.STRENGTH))
                 .totalPoints(1)
                 .raceBonusTable(RaceBonusTable.builder().build())
+                .classBonusTable(ClassBonusTable.builder().build())
                 .generate();
 
         assertThat(result.race()).isEqualTo(Race.HUMAN);
@@ -48,9 +86,11 @@ public class CharacterGeneratorToolTest {
         for (int i = 0; i < ITERATIONS; i++) {
             CharacterResult result = CharacterGeneratorTool.building()
                     .randomRace()
+                    .characterClass(CharacterClass.WARRIOR)
                     .characteristics(List.of(Characteristic.STRENGTH))
                     .totalPoints(1)
                     .raceBonusTable(RaceBonusTable.builder().build())
+                    .classBonusTable(ClassBonusTable.builder().build())
                     .generate();
 
             assertThat(result.race()).isIn((Object[]) Race.values());
@@ -61,6 +101,7 @@ public class CharacterGeneratorToolTest {
     void allCharacteristicsProducesExactlyTheSevenCharacteristics() {
         CharacterResult result = CharacterGeneratorTool.building()
                 .race(Race.ELF)
+                .characterClass(CharacterClass.WARRIOR)
                 .allCharacteristics()
                 .totalPoints(Characteristic.values().length)
                 .generate();
@@ -75,9 +116,11 @@ public class CharacterGeneratorToolTest {
     void characteristicsListIsDeduplicated() {
         CharacterResult result = CharacterGeneratorTool.building()
                 .race(Race.ORC)
+                .characterClass(CharacterClass.WARRIOR)
                 .characteristics(List.of(Characteristic.STRENGTH, Characteristic.STRENGTH, Characteristic.AGILITY))
                 .totalPoints(2)
                 .raceBonusTable(RaceBonusTable.builder().build())
+                .classBonusTable(ClassBonusTable.builder().build())
                 .generate();
 
         Set<Characteristic> generatedCharacteristics = extractCharacteristics(result);
@@ -91,9 +134,11 @@ public class CharacterGeneratorToolTest {
         for (int i = 0; i < ITERATIONS; i++) {
             CharacterResult result = CharacterGeneratorTool.building()
                     .race(Race.UNDEAD)
+                    .characterClass(CharacterClass.WARRIOR)
                     .allCharacteristics()
                     .totalPoints(20)
                     .raceBonusTable(RaceBonusTable.builder().build())
+                    .classBonusTable(ClassBonusTable.builder().build())
                     .generate();
 
             int sum = sumOfValues(result);
@@ -107,6 +152,7 @@ public class CharacterGeneratorToolTest {
         for (int i = 0; i < ITERATIONS; i++) {
             CharacterResult result = CharacterGeneratorTool.building()
                     .race(Race.HUMAN)
+                    .characterClass(CharacterClass.WARRIOR)
                     .allCharacteristics()
                     .totalPoints(Characteristic.values().length)
                     .generate();
@@ -122,6 +168,7 @@ public class CharacterGeneratorToolTest {
         for (int i = 0; i < ITERATIONS; i++) {
             CharacterResult result = CharacterGeneratorTool.building()
                     .race(Race.HUMAN)
+                    .characterClass(CharacterClass.WARRIOR)
                     .allCharacteristics()
                     .totalPoints(0)
                     .minCharacteristicValue(0)
@@ -138,6 +185,7 @@ public class CharacterGeneratorToolTest {
         for (int i = 0; i < ITERATIONS; i++) {
             CharacterResult result = CharacterGeneratorTool.building()
                     .race(Race.HUMAN)
+                    .characterClass(CharacterClass.WARRIOR)
                     .allCharacteristics()
                     .totalPoints(Characteristic.values().length * 3)
                     .minCharacteristicValue(3)
@@ -154,9 +202,11 @@ public class CharacterGeneratorToolTest {
         for (int i = 0; i < ITERATIONS; i++) {
             CharacterResult result = CharacterGeneratorTool.building()
                     .race(Race.HUMAN)
+                    .characterClass(CharacterClass.WARRIOR)
                     .characteristics(List.of(Characteristic.STRENGTH, Characteristic.AGILITY, Characteristic.LUCK))
                     .totalPoints(4)
                     .raceBonusTable(RaceBonusTable.builder().build())
+                    .classBonusTable(ClassBonusTable.builder().build())
                     .generate();
 
             int sum = sumOfValues(result);
@@ -175,10 +225,12 @@ public class CharacterGeneratorToolTest {
 
         CharacterResult result = CharacterGeneratorTool.building()
                 .race(Race.HUMAN)
+                .characterClass(CharacterClass.WARRIOR)
                 .addNickname()
                 .characteristics(List.of(Characteristic.STRENGTH))
                 .totalPoints(1)
                 .raceBonusTable(RaceBonusTable.builder().build())
+                .classBonusTable(ClassBonusTable.builder().build())
                 .generate();
 
         assertThat(result.name()).isNotBlank().contains(" ");
@@ -214,9 +266,34 @@ public class CharacterGeneratorToolTest {
     }
 
     @Test
+    void generateWithoutClassThrowsIllegalStateException() {
+        assertThatThrownBy(() -> CharacterGeneratorTool.building()
+                .race(Race.HUMAN)
+                .characteristics(List.of(Characteristic.STRENGTH))
+                .totalPoints(1)
+                .generate())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Character class must be set before generating a character");
+    }
+
+    @Test
+    void generateWithBothClassAndRandomClassThrowsIllegalStateException() {
+        assertThatThrownBy(() -> CharacterGeneratorTool.building()
+                .race(Race.HUMAN)
+                .characterClass(CharacterClass.WARRIOR)
+                .randomClass()
+                .characteristics(List.of(Characteristic.STRENGTH))
+                .totalPoints(1)
+                .generate())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Only one of characterClass or randomClass can be used together");
+    }
+
+    @Test
     void generateWithoutCharacteristicsSourceThrowsIllegalStateException() {
         assertThatThrownBy(() -> CharacterGeneratorTool.building()
                 .race(Race.HUMAN)
+                .characterClass(CharacterClass.WARRIOR)
                 .totalPoints(1)
                 .generate())
                 .isInstanceOf(IllegalStateException.class)
@@ -227,6 +304,7 @@ public class CharacterGeneratorToolTest {
     void generateWithBothCharacteristicsAndAllCharacteristicsThrowsIllegalStateException() {
         assertThatThrownBy(() -> CharacterGeneratorTool.building()
                 .race(Race.HUMAN)
+                .characterClass(CharacterClass.WARRIOR)
                 .characteristics(List.of(Characteristic.STRENGTH))
                 .allCharacteristics()
                 .totalPoints(1)
@@ -239,6 +317,7 @@ public class CharacterGeneratorToolTest {
     void generateWithoutTotalPointsThrowsIllegalStateException() {
         assertThatThrownBy(() -> CharacterGeneratorTool.building()
                 .race(Race.HUMAN)
+                .characterClass(CharacterClass.WARRIOR)
                 .characteristics(List.of(Characteristic.STRENGTH))
                 .generate())
                 .isInstanceOf(IllegalStateException.class)
@@ -249,6 +328,7 @@ public class CharacterGeneratorToolTest {
     void generateWithNotEnoughTotalPointsThrowsIllegalStateException() {
         assertThatThrownBy(() -> CharacterGeneratorTool.building()
                 .race(Race.HUMAN)
+                .characterClass(CharacterClass.WARRIOR)
                 .characteristics(List.of(Characteristic.STRENGTH, Characteristic.AGILITY))
                 .totalPoints(1)
                 .generate())
@@ -261,6 +341,7 @@ public class CharacterGeneratorToolTest {
     void generateWithNegativeMinCharacteristicValueThrowsIllegalStateException() {
         assertThatThrownBy(() -> CharacterGeneratorTool.building()
                 .race(Race.HUMAN)
+                .characterClass(CharacterClass.WARRIOR)
                 .characteristics(List.of(Characteristic.STRENGTH))
                 .totalPoints(1)
                 .minCharacteristicValue(-1)
@@ -274,6 +355,8 @@ public class CharacterGeneratorToolTest {
         for (int i = 0; i < ITERATIONS; i++) {
             CharacterResult result = CharacterGeneratorTool.building()
                     .race(Race.ORC)
+                    .characterClass(CharacterClass.WARRIOR)
+                    .classBonusTable(ClassBonusTable.builder().build())
                     .allCharacteristics()
                     .totalPoints(20)
                     .generate();
@@ -288,6 +371,8 @@ public class CharacterGeneratorToolTest {
         for (int i = 0; i < ITERATIONS; i++) {
             CharacterResult result = CharacterGeneratorTool.building()
                     .race(Race.HUMAN)
+                    .characterClass(CharacterClass.WARRIOR)
+                    .classBonusTable(ClassBonusTable.builder().build())
                     .allCharacteristics()
                     .totalPoints(20)
                     .generate();
@@ -301,6 +386,8 @@ public class CharacterGeneratorToolTest {
         for (int i = 0; i < ITERATIONS; i++) {
             CharacterResult result = CharacterGeneratorTool.building()
                     .race(Race.ELF)
+                    .characterClass(CharacterClass.WARRIOR)
+                    .classBonusTable(ClassBonusTable.builder().build())
                     .allCharacteristics()
                     .totalPoints(20)
                     .generate();
@@ -314,6 +401,8 @@ public class CharacterGeneratorToolTest {
         for (int i = 0; i < ITERATIONS; i++) {
             CharacterResult result = CharacterGeneratorTool.building()
                     .race(Race.UNDEAD)
+                    .characterClass(CharacterClass.WARRIOR)
+                    .classBonusTable(ClassBonusTable.builder().build())
                     .allCharacteristics()
                     .totalPoints(20)
                     .generate();
@@ -326,6 +415,8 @@ public class CharacterGeneratorToolTest {
     void defaultOrcBonusAppliesExactValuesToTargetedCharacteristics() {
         CharacterResult result = CharacterGeneratorTool.building()
                 .race(Race.ORC)
+                .characterClass(CharacterClass.WARRIOR)
+                .classBonusTable(ClassBonusTable.builder().build())
                 .characteristics(List.of(Characteristic.STRENGTH, Characteristic.RESISTANCE))
                 .minCharacteristicValue(0)
                 .totalPoints(0)
@@ -343,6 +434,8 @@ public class CharacterGeneratorToolTest {
 
         CharacterResult result = CharacterGeneratorTool.building()
                 .race(Race.HUMAN)
+                .characterClass(CharacterClass.WARRIOR)
+                .classBonusTable(ClassBonusTable.builder().build())
                 .characteristics(List.of(Characteristic.STRENGTH))
                 .minCharacteristicValue(0)
                 .totalPoints(0)
@@ -356,6 +449,8 @@ public class CharacterGeneratorToolTest {
     void emptyRaceBonusTableOptsOutOfAnyBonus() {
         CharacterResult result = CharacterGeneratorTool.building()
                 .race(Race.HUMAN)
+                .characterClass(CharacterClass.WARRIOR)
+                .classBonusTable(ClassBonusTable.builder().build())
                 .characteristics(List.of(Characteristic.STRENGTH))
                 .totalPoints(1)
                 .raceBonusTable(RaceBonusTable.builder().build())
@@ -369,6 +464,8 @@ public class CharacterGeneratorToolTest {
     void bonusTargetingAbsentCharacteristicThrowsIllegalStateException() {
         assertThatThrownBy(() -> CharacterGeneratorTool.building()
                 .race(Race.ORC)
+                .characterClass(CharacterClass.WARRIOR)
+                .classBonusTable(ClassBonusTable.builder().build())
                 .characteristics(List.of(Characteristic.STRENGTH))
                 .totalPoints(1)
                 .generate())
@@ -384,12 +481,153 @@ public class CharacterGeneratorToolTest {
 
         CharacterResult result = CharacterGeneratorTool.building()
                 .race(Race.ELF)
+                .characterClass(CharacterClass.WARRIOR)
+                .classBonusTable(ClassBonusTable.builder().build())
                 .characteristics(List.of(Characteristic.STRENGTH))
                 .totalPoints(1)
                 .raceBonusTable(customTable)
                 .generate();
 
         assertThat(valueOf(result, Characteristic.STRENGTH)).isEqualTo(1);
+    }
+
+    @Test
+    void defaultWarriorBonusAppliesExactValuesToTargetedCharacteristics() {
+        CharacterResult result = CharacterGeneratorTool.building()
+                .race(Race.HUMAN)
+                .raceBonusTable(RaceBonusTable.builder().build())
+                .characterClass(CharacterClass.WARRIOR)
+                .characteristics(List.of(Characteristic.STRENGTH, Characteristic.STAMINA))
+                .minCharacteristicValue(0)
+                .totalPoints(0)
+                .generate();
+
+        assertThat(valueOf(result, Characteristic.STRENGTH)).isEqualTo(2);
+        assertThat(valueOf(result, Characteristic.STAMINA)).isEqualTo(1);
+    }
+
+    @Test
+    void defaultClassBonusAddsThreePointsOnTopOfTotalPoints() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            CharacterResult result = CharacterGeneratorTool.building()
+                    .race(Race.HUMAN)
+                    .raceBonusTable(RaceBonusTable.builder().build())
+                    .characterClass(CharacterClass.MAGE)
+                    .allCharacteristics()
+                    .totalPoints(20)
+                    .generate();
+
+            assertThat(sumOfValues(result)).isEqualTo(23);
+        }
+    }
+
+    @Test
+    void customClassBonusTableOverridesTheDefaultOne() {
+        ClassBonusTable customTable = ClassBonusTable.builder()
+                .bonus(CharacterClass.WARRIOR, Characteristic.STRENGTH, 5)
+                .build();
+
+        CharacterResult result = CharacterGeneratorTool.building()
+                .race(Race.HUMAN)
+                .raceBonusTable(RaceBonusTable.builder().build())
+                .characterClass(CharacterClass.WARRIOR)
+                .characteristics(List.of(Characteristic.STRENGTH))
+                .minCharacteristicValue(0)
+                .totalPoints(0)
+                .classBonusTable(customTable)
+                .generate();
+
+        assertThat(valueOf(result, Characteristic.STRENGTH)).isEqualTo(5);
+    }
+
+    @Test
+    void emptyClassBonusTableOptsOutOfAnyBonus() {
+        CharacterResult result = CharacterGeneratorTool.building()
+                .race(Race.HUMAN)
+                .raceBonusTable(RaceBonusTable.builder().build())
+                .characterClass(CharacterClass.WARRIOR)
+                .characteristics(List.of(Characteristic.STRENGTH))
+                .totalPoints(1)
+                .classBonusTable(ClassBonusTable.builder().build())
+                .generate();
+
+        assertThat(valueOf(result, Characteristic.STRENGTH)).isEqualTo(1);
+        assertThat(sumOfValues(result)).isEqualTo(1);
+    }
+
+    @Test
+    void classBonusTargetingAbsentCharacteristicThrowsIllegalStateException() {
+        assertThatThrownBy(() -> CharacterGeneratorTool.building()
+                .race(Race.HUMAN)
+                .raceBonusTable(RaceBonusTable.builder().build())
+                .characterClass(CharacterClass.WARRIOR)
+                .characteristics(List.of(Characteristic.STRENGTH))
+                .totalPoints(1)
+                .generate())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("STAMINA");
+    }
+
+    @Test
+    void bothDefaultRaceAndClassBonusesCombineOnTopOfTotalPoints() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            CharacterResult result = CharacterGeneratorTool.building()
+                    .race(Race.ORC)
+                    .characterClass(CharacterClass.WARRIOR)
+                    .allCharacteristics()
+                    .totalPoints(20)
+                    .generate();
+
+            assertThat(sumOfValues(result)).isEqualTo(26);
+        }
+    }
+
+    @Test
+    void verboseLogsRaceAndClassBonusDetails() {
+        CharacterGeneratorTool.building()
+                .race(Race.ORC)
+                .characterClass(CharacterClass.WARRIOR)
+                .allCharacteristics()
+                .totalPoints(20)
+                .verbose()
+                .generate();
+
+        String output = capturedOutput.toString(StandardCharsets.UTF_8);
+
+        assertThat(output).contains("race ORC", "total +3", "STRENGTH +2", "RESISTANCE +1");
+        assertThat(output).contains("character class WARRIOR", "STAMINA +1");
+        assertThat(output).contains("Resolved race", "Resolved class", "After distribution", "Final character");
+    }
+
+    @Test
+    void nonVerboseProducesNoOutput() {
+        CharacterGeneratorTool.building()
+                .race(Race.ORC)
+                .characterClass(CharacterClass.WARRIOR)
+                .allCharacteristics()
+                .totalPoints(20)
+                .generate();
+
+        String output = capturedOutput.toString(StandardCharsets.UTF_8);
+
+        assertThat(output).isEmpty();
+    }
+
+    @Test
+    void verboseLogsNoBonusWhenTableEmpty() {
+        CharacterGeneratorTool.building()
+                .race(Race.ORC)
+                .characterClass(CharacterClass.WARRIOR)
+                .raceBonusTable(RaceBonusTable.builder().build())
+                .classBonusTable(ClassBonusTable.builder().build())
+                .allCharacteristics()
+                .totalPoints(20)
+                .verbose()
+                .generate();
+
+        String output = capturedOutput.toString(StandardCharsets.UTF_8);
+
+        assertThat(output).contains("No bonus from race", "No bonus from character class");
     }
 
     private int valueOf(CharacterResult result, Characteristic characteristic) {
