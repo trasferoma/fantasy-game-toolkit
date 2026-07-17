@@ -68,6 +68,23 @@ class DungeonAsciiRendererTest {
     }
 
     @Test
+    void rendersLegendAsideTheMap() {
+        DungeonResult result = DungeonGenerationTool.building()
+                .numberOfChambers(8)
+                .generate();
+
+        String map = DungeonAsciiRenderer.render(result);
+
+        assertThat(map).contains("Legenda:");
+        assertThat(map).contains("< ingresso");
+        assertThat(map).contains("> finale");
+        assertThat(map).contains("!N main event");
+        assertThat(map).contains("eN nemici");
+        assertThat(map).contains("^N trappole");
+        assertThat(map).contains("#<id> id stanza");
+    }
+
+    @Test
     void noLineHasTrailingWhitespace() {
         DungeonResult result = DungeonGenerationTool.building()
                 .numberOfChambers(8)

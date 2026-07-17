@@ -36,8 +36,17 @@ public final class DungeonAsciiRenderer {
     private static final char FINAL_GLYPH = '>';
     private static final char EMPTY = ' ';
 
-    private static final String LEGEND =
-            "Legenda: < ingresso  > finale  !N main event  eN nemici  ^N trappole  #<id> id stanza";
+    private static final List<String> LEGEND_LINES = List.of(
+            "Legenda:",
+            "< ingresso",
+            "> finale",
+            "!N main event",
+            "eN nemici",
+            "^N trappole",
+            "#<id> id stanza");
+
+    private static final int LEGEND_COLUMN_WIDTH = 18;
+    private static final int COLUMN_GAP = 4;
 
     private DungeonAsciiRenderer() {
     }
@@ -54,7 +63,26 @@ public final class DungeonAsciiRenderer {
         drawRooms(canvas, dungeon, positionByChamberId);
         drawCorridors(canvas, dungeon, positionByChamberId);
 
-        return LEGEND + System.lineSeparator() + System.lineSeparator() + canvas.toText();
+        return composeSideBySide(LEGEND_LINES, canvas.toLines());
+    }
+
+    private static String composeSideBySide(List<String> leftColumn, List<String> rightColumn) {
+        int rowCount = Math.max(leftColumn.size(), rightColumn.size());
+        List<String> composedLines = IntStream.range(0, rowCount)
+                .mapToObj(row -> composeRow(leftColumn, rightColumn, row))
+                .collect(Collectors.toList());
+        return String.join(System.lineSeparator(), composedLines);
+    }
+
+    private static String composeRow(List<String> leftColumn, List<String> rightColumn, int row) {
+        String leftCell = row < leftColumn.size() ? leftColumn.get(row) : "";
+        String rightCell = row < rightColumn.size() ? rightColumn.get(row) : "";
+        String composedRow = padRight(leftCell, LEGEND_COLUMN_WIDTH) + " ".repeat(COLUMN_GAP) + rightCell;
+        return composedRow.stripTrailing();
+    }
+
+    private static String padRight(String text, int width) {
+        return text.length() >= width ? text : text + " ".repeat(width - text.length());
     }
 
     private static Map<Integer, Integer> computeColumns(DungeonResult dungeon) {
@@ -318,18 +346,10 @@ public final class DungeonAsciiRenderer {
             return x >= 0 && x < width && y >= 0 && y < height;
         }
 
-        private String toText() {
+        private List<String> toLines() {
             return IntStream.range(0, height)
-                    .mapToObj(y -> rightTrim(new String(grid[y])))
-                    .collect(Collectors.joining(System.lineSeparator()));
-        }
-
-        private String rightTrim(String line) {
-            int end = line.length();
-            while (end > 0 && line.charAt(end - 1) == EMPTY) {
-                end--;
-            }
-            return line.substring(0, end);
+                    .mapToObj(y -> new String(grid[y]).stripTrailing())
+                    .collect(Collectors.toList());
         }
     }
 }
