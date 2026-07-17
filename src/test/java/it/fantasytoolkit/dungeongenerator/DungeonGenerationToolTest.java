@@ -66,6 +66,16 @@ public class DungeonGenerationToolTest {
     }
 
     @Test
+    void generateWithNegativeNumberOfChestsThrowsIllegalStateException() {
+        assertThatThrownBy(() -> DungeonGenerationTool.building()
+                .numberOfChambers(4)
+                .numberOfChests(-1)
+                .generate())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Number of chests must not be negative");
+    }
+
+    @Test
     void generatesRequestedNumberOfChambers() {
         DungeonResult result = DungeonGenerationTool.building()
                 .numberOfChambers(6)
@@ -160,6 +170,28 @@ public class DungeonGenerationToolTest {
             assertThat(sum).isEqualTo(numberOfEnemy);
             assertThat(result.chambers()).allMatch(
                     chamber -> chamber.enemyCount() == base || chamber.enemyCount() == base + 1);
+        }
+    }
+
+    @Test
+    void distributesChestsUniformlyAcrossAllChambers() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            int numberOfChambers = 7;
+            int numberOfChests = 20;
+
+            DungeonResult result = DungeonGenerationTool.building()
+                    .numberOfChambers(numberOfChambers)
+                    .numberOfChests(numberOfChests)
+                    .generate();
+
+            int base = numberOfChests / numberOfChambers;
+            int sum = result.chambers().stream()
+                    .mapToInt(Chamber::chestCount)
+                    .sum();
+
+            assertThat(sum).isEqualTo(numberOfChests);
+            assertThat(result.chambers()).allMatch(
+                    chamber -> chamber.chestCount() == base || chamber.chestCount() == base + 1);
         }
     }
 

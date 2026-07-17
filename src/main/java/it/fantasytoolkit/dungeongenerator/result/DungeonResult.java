@@ -5,7 +5,7 @@ import java.util.List;
 import it.fantasytoolkitcore.core.pojo.GeneratedElementResult;
 
 public record DungeonResult(int numberOfChambers, List<Chamber> chambers, List<ChamberConnection> connections,
-        int numberOfEnemies, int numberOfTraps) implements GeneratedElementResult {
+        int numberOfEnemies, int numberOfTraps, int numberOfChests) implements GeneratedElementResult {
     public static DungeonResult.Builder builder() {
         return new DungeonResult.Builder();
     }
@@ -16,6 +16,7 @@ public record DungeonResult(int numberOfChambers, List<Chamber> chambers, List<C
         private List<ChamberConnection> connections;
         private int numberOfEnemies;
         private int numberOfTraps;
+        private int numberOfChests;
 
         private Builder() {
         }
@@ -45,8 +46,14 @@ public record DungeonResult(int numberOfChambers, List<Chamber> chambers, List<C
             return this;
         }
 
+        public DungeonResult.Builder numberOfChests(int numberOfChests) {
+            this.numberOfChests = numberOfChests;
+            return this;
+        }
+
         public DungeonResult build() {
-            return new DungeonResult(numberOfChambers, chambers, connections, numberOfEnemies, numberOfTraps);
+            return new DungeonResult(numberOfChambers, chambers, connections, numberOfEnemies, numberOfTraps,
+                    numberOfChests);
         }
     }
 }

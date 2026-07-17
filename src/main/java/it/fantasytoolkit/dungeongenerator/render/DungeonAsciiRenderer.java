@@ -43,6 +43,7 @@ public final class DungeonAsciiRenderer {
             "!N main event",
             "eN nemici",
             "^N trappole",
+            "$N scrigni",
             "#<id> id stanza");
 
     private static final int LEGEND_COLUMN_WIDTH = 18;
@@ -203,6 +204,9 @@ public final class DungeonAsciiRenderer {
         }
         if (chamber.trapCount() > 0) {
             parts.add("^" + chamber.trapCount());
+        }
+        if (chamber.chestCount() > 0) {
+            parts.add("$" + chamber.chestCount());
         }
         return String.join(" ", parts);
     }

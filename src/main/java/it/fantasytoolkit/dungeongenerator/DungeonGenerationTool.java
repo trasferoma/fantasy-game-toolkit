@@ -34,6 +34,7 @@ public final class DungeonGenerationTool {
         private int mainEventCounter;
         private boolean haveTraps;
         private int numberOfEnemy;
+        private int numberOfChests;
 
         private Builder() {
         }
@@ -74,18 +75,25 @@ public final class DungeonGenerationTool {
             return this;
         }
 
+        public Builder numberOfChests(int numberOfChests) {
+            this.numberOfChests = numberOfChests;
+            return this;
+        }
+
         public DungeonResult generate() {
             validateNumberOfChambers();
             validateNumberOfEnemy();
+            validateNumberOfChests();
 
             Random random = new Random();
             List<List<MainEvent>> mainEventsByChamber = buildEmptyMainEventLists();
             placeFinalMainEvents(mainEventsByChamber);
             placeRandomPositionMainEvents(mainEventsByChamber, random);
             int[] enemyCounts = distributeUniformly(numberOfEnemy, random);
+            int[] chestCounts = distributeUniformly(numberOfChests, random);
             int numberOfTraps = resolveNumberOfTraps(random);
             int[] trapCounts = distributeUniformly(numberOfTraps, random);
-            List<Chamber> chambers = buildChambers(mainEventsByChamber, enemyCounts, trapCounts);
+            List<Chamber> chambers = buildChambers(mainEventsByChamber, enemyCounts, trapCounts, chestCounts);
             List<ChamberConnection> connections = buildConnections(random);
 
             return DungeonResult.builder()
@@ -94,6 +102,7 @@ public final class DungeonGenerationTool {
                     .connections(connections)
                     .numberOfEnemies(numberOfEnemy)
                     .numberOfTraps(numberOfTraps)
+                    .numberOfChests(numberOfChests)
                     .build();
         }
 
@@ -148,12 +157,12 @@ public final class DungeonGenerationTool {
         }
 
         private List<Chamber> buildChambers(List<List<MainEvent>> mainEventsByChamber, int[] enemyCounts,
-                int[] trapCounts) {
+                int[] trapCounts, int[] chestCounts) {
             List<Chamber> chambers = new ArrayList<>();
             for (int chamberId = 0; chamberId < numberOfChambers; chamberId++) {
                 ChamberType type = resolveChamberType(chamberId);
                 chambers.add(new Chamber(chamberId, type, mainEventsByChamber.get(chamberId),
-                        enemyCounts[chamberId], trapCounts[chamberId]));
+                        enemyCounts[chamberId], trapCounts[chamberId], chestCounts[chamberId]));
             }
             return chambers;
         }
@@ -222,6 +231,12 @@ public final class DungeonGenerationTool {
         private void validateNumberOfEnemy() {
             if (numberOfEnemy < 0) {
                 throw new IllegalStateException("Number of enemies must not be negative");
+            }
+        }
+
+        private void validateNumberOfChests() {
+            if (numberOfChests < 0) {
+                throw new IllegalStateException("Number of chests must not be negative");
             }
         }
     }

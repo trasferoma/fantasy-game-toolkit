@@ -71,6 +71,7 @@ class DungeonAsciiRendererTest {
     void rendersLegendAsideTheMap() {
         DungeonResult result = DungeonGenerationTool.building()
                 .numberOfChambers(8)
+                .numberOfChests(5)
                 .generate();
 
         String map = DungeonAsciiRenderer.render(result);
@@ -81,7 +82,10 @@ class DungeonAsciiRendererTest {
         assertThat(map).contains("!N main event");
         assertThat(map).contains("eN nemici");
         assertThat(map).contains("^N trappole");
+        assertThat(map).contains("$N scrigni");
         assertThat(map).contains("#<id> id stanza");
+
+        System.out.println(map);
     }
 
     @Test
