@@ -31,9 +31,6 @@ Quando devi **utilizzare** un'API pubblica:
 4. ispeziona l'implementazione soltanto quando devi **modificare** la libreria
    oppure quando la documentazione risulta incompleta o incoerente col codice.
 
-Quando **modifichi** un tool, aggiorna anche il relativo documento in
-`docs/agent/`: la documentazione e il codice devono restare coerenti.
-
 Mappa modulo → documento:
 
 | Modulo (package) | Documento |
@@ -48,6 +45,25 @@ Mappa modulo → documento:
 | `charactergenerator` | `docs/agent/character-generator.md` |
 | `dungeongenerator` | `docs/agent/dungeon-generator.md` |
 | `dicelauncher` | `docs/agent/dice-launcher.md` |
+
+### Mantenere allineati doc e codice
+
+La documentazione in `docs/agent/` è un **contratto pubblico**: deve restare
+coerente col codice. Ogni modifica che tocca l'API pubblica va accompagnata
+dall'aggiornamento del documento nella **stessa change**, non dopo.
+
+- **Modifichi un'API pubblica** (nuovo metodo del builder, cambio di parametri,
+  campi del result, comportamento, errori/vincoli, valori di default): aggiorna
+  il documento del modulo interessato.
+- **Aggiungi un modulo/tool nuovo**: crea il relativo `docs/agent/<modulo>.md` e
+  aggiungi la riga in `docs/agent/INDEX.md` e nella mappa qui sopra.
+- **Rimuovi o rinomini un'API**: rifletti la rimozione/rinomina nel documento,
+  senza lasciare riferimenti orfani.
+- Se noti che documentazione e codice **divergono**, prevale il codice: correggi
+  il documento (o segnala l'incoerenza se il codice sembra sbagliato).
+
+Cambi solo l'implementazione interna (private, refactor senza impatto sul
+contratto pubblico)? Allora il documento non va toccato.
 
 ## Architettura
 
@@ -96,7 +112,7 @@ Per API, builder, parametri, result, errori ed esempi di ogni modulo, vedi il do
 
 ## Vincoli quando modifichi la libreria
 
-- **Non rompere il contratto pubblico** documentato in `docs/agent/` senza aggiornare il documento corrispondente. Codice e documentazione devono restare coerenti.
+- **Non rompere il contratto pubblico** documentato in `docs/agent/`: se cambi un'API, aggiorna il documento nella stessa change (vedi "Mantenere allineati doc e codice").
 - **Rispetta il pattern comune**: nuovo generatore = `*Tool` con costruttore privato, `building()` → `Builder` fluente → `generate()` (o `roll()`) → result `record` che implementa `GeneratedElementResult`.
 - **Java 21**: usa pure le feature stabili (record, switch expression, pattern matching, sealed) ma niente preview feature non richieste.
 - **Nessuna dipendenza esterna nuova** se non strettamente necessaria: il progetto è self-contained (niente logging framework — `verbose` usa `System.out`; nessun DB; nessuna config esterna).
