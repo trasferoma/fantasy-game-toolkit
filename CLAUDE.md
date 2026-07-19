@@ -36,8 +36,9 @@ Package `it.fantasytoolkitcore.core` (nota: distinto dal `groupId` `it.fantasyto
 - `core.model.PotionType` — enum delle famiglie di pozione: `BUFF`, `DEBUFF`, `HEALTH_REGENERATION`, `MANA_REGENERATION`. La distinzione vita/mana della rigenerazione vive qui (il result ha un solo `int value`).
 - `core.model.Characteristic` — enum delle caratteristiche di gioco: `STRENGTH`, `INTELLIGENCE`, `AGILITY`, `CHARISMA`, `RESISTANCE`, `STAMINA`, `LUCK`.
 - `core.model.CharacterClass` — enum delle classi del personaggio: `WARRIOR`, `MAGE`, `THIEF`, `RANGER`. Come `Race`, ogni classe ha bonus tematici sulle caratteristiche (vedi `ClassBonusTable`).
+- `core.model.ChamberType` — enum del ruolo di una stanza nel dungeon: `ENTRY`, `STANDARD`, `FINAL`. Usato da `dungeongenerator` per marcare stanza d'ingresso e stanza finale.
 - `core.model.RarityTable` — tabella di estrazione pesata delle rarità. Costruita con `RarityTable.builder().entry(rarity, weight)...build()`; `draw(Random)` restituisce una `Rarity` con probabilità proporzionale al peso. `build()` valida che i pesi siano positivi, le rarità uniche e la **somma dei pesi pari a 100**; altrimenti `IllegalStateException`. Immutabile (`List.copyOf`).
-- `core.model.RaritySelector` — selettore di rarità con **distribuzione di default predefinita**. `RaritySelector.withDefaultDistribution()` costruisce internamente una `RarityTable` con i pesi standard (COMMON `50`, UNCOMMON `25`, RARE `12`, EPIC `8`, LEGENDARY `5`; somma `100`); `select(Random)` delega a `RarityTable.draw(Random)` e restituisce la `Rarity` estratta. `final`, costruttore privato, `Random` fornito dall'esterno. Riusa `RarityTable`, non ne duplica la logica. La `RarityTable` interna non è esposta: per alimentare i generatori si usa `select(random)` → `rarity(Rarity)`. Uso: `RaritySelector.withDefaultDistribution().select(random)`.
+- `core.tool.RaritySelector` — selettore di rarità con **distribuzione di default predefinita**. `RaritySelector.withDefaultDistribution()` costruisce internamente una `RarityTable` con i pesi standard (COMMON `50`, UNCOMMON `25`, RARE `12`, EPIC `8`, LEGENDARY `5`; somma `100`); `select(Random)` delega a `RarityTable.draw(Random)` e restituisce la `Rarity` estratta. `final`, costruttore privato, `Random` fornito dall'esterno. Riusa `RarityTable`, non ne duplica la logica. La `RarityTable` interna non è esposta: per alimentare i generatori si usa `select(random)` → `rarity(Rarity)`. Uso: `RaritySelector.withDefaultDistribution().select(random)`.
 - `core.model.RaceBonusTable` — tabella dei bonus alle caratteristiche per razza (gemella di `ClassBonusTable`). Costruita con `RaceBonusTable.builder().bonus(race, characteristic, value)...build()`; `bonusesFor(Race)` restituisce la lista di `CharacteristicBonus(Characteristic, int value)` (record pubblico annidato), o `List.of()` se la razza non ha entry. `build()` valida che i valori siano positivi e le coppie (razza, caratteristica) uniche; **tabella vuota ammessa** (opt-out dai bonus). Immutabile (`EnumMap` + liste unmodifiable). `RaceBonusTable.withDefaultBonuses()` fornisce i default: HUMAN `STRENGTH+1, AGILITY+1, INTELLIGENCE+1`; ELF `AGILITY+2, INTELLIGENCE+1`; ORC `STRENGTH+2, RESISTANCE+1`; UNDEAD `RESISTANCE+2, STAMINA+1`.
 - `core.model.ClassBonusTable` — gemella per copia di `RaceBonusTable`, con chiave `CharacterClass` al posto di `Race` (stesso builder, stesse validazioni, stesso `CharacteristicBonus`, tabella vuota ammessa, `EnumMap`). `ClassBonusTable.withDefaultBonuses()` fornisce i default: WARRIOR `STRENGTH+2, STAMINA+1`; MAGE `INTELLIGENCE+2, CHARISMA+1`; THIEF `AGILITY+2, LUCK+1`; RANGER `AGILITY+2, RESISTANCE+1`.
 - `core.pojo.GeneratedElementResult` — marker interface comune a tutti i result.
@@ -148,6 +149,42 @@ CharacterGeneratorTool.building().race(Race.ORC).characterClass(CharacterClass.W
 ```
 
 > **Nota sulla duplicazione.** `JewelGeneratorTool`, `WeaponGeneratorTool`, `ArmourGeneratorTool` e `PotionGeneratorTool` condividono per copia la logica di risoluzione rarità (e i primi tre anche quella buff/debuff). `CharacterGeneratorTool` riusa lo stesso pattern builder e l'helper `countTrue(boolean...)` per la validazione delle sorgenti (razza, classe e caratteristiche), ma non ha rarità né buff/debuff. `RaceBonusTable` e `ClassBonusTable` sono a loro volta gemelle per copia (chiave `Race` vs `CharacterClass`); l'applicazione dei bonus è invece unificata **dentro** `CharacterGeneratorTool` in un helper condiviso (`applyBonuses`). Scelta coerente con lo stile self-contained del progetto; un'eventuale centralizzazione delle tabelle in `core` sarebbe un refactor trasversale.
+
+### `dungeongenerator` — generazione di dungeon a stanze collegate
+
+- `dungeongenerator.DungeonGenerationTool` — `building()` → `Builder` → `generate()` → `DungeonResult`. Non usa rarità né buff/debuff: costruisce una mappa di stanze connesse e vi distribuisce eventi, nemici, trappole e scrigni.
+  - **Numero di stanze**: `numberOfChambers(int)` è **obbligatorio** (altrimenti `IllegalStateException`) e deve essere almeno `2` (stanza d'ingresso + stanza finale); sotto `2` → `IllegalStateException`. La stanza `0` è sempre `ENTRY`, l'ultima `FINAL`, le intermedie `STANDARD`.
+  - **Eventi principali** (`MainEvent`, identificati da un `code`): `mainEvent()` / `randomPositionMainEvent()` generano un codice automatico (`MainEvent_<n>`, contatore progressivo), le overload `mainEvent(String)` / `randomPositionMainEvent(String)` accettano un codice esplicito. I `mainEvent*` finiscono **sempre nella stanza finale**; i `randomPositionMainEvent*` in una stanza casuale **diversa dall'ingresso** (indice `1..numberOfChambers-1`). Invocabili più volte: ogni chiamata aggiunge un evento.
+  - **Nemici**: `numberOfEnemy(int)` (default `0`, negativo → `IllegalStateException`) è il totale distribuito **uniformemente** tra tutte le stanze (base uguale per tutte, il resto va a stanze casuali).
+  - **Scrigni**: `numberOfChests(int)` (default `0`, negativo → `IllegalStateException`), distribuiti uniformemente come i nemici.
+  - **Trappole**: `haveTraps()` (opt-in) fa sì che `generate()` scelga un numero casuale di trappole in `[0, numberOfChambers]`, poi distribuito uniformemente; senza `haveTraps()` le trappole sono `0`.
+  - **Connessioni**: si costruisce prima uno **spanning tree** casuale che garantisce la raggiungibilità di ogni stanza, poi si aggiungono fino a `numberOfChambers/2` connessioni extra casuali. Ogni `ChamberConnection` è normalizzata (`from = min`, `to = max`) e deduplicata (`LinkedHashSet`).
+- `dungeongenerator.result.DungeonResult` — `record DungeonResult(int numberOfChambers, List<Chamber> chambers, List<ChamberConnection> connections, int numberOfEnemies, int numberOfTraps, int numberOfChests) implements GeneratedElementResult`, con `Builder` interno.
+- `dungeongenerator.result.Chamber` — `record Chamber(int id, ChamberType type, List<MainEvent> mainEvents, int enemyCount, int trapCount, int chestCount)` (difensivo: `List.copyOf` sui `mainEvents`).
+- `dungeongenerator.result.ChamberConnection` — `record ChamberConnection(int fromChamberId, int toChamberId)`; il compact constructor ordina gli id (`min`/`max`) così che A→B e B→A siano la stessa connessione.
+- `dungeongenerator.result.MainEvent` — `record MainEvent(String code)`.
+- `dungeongenerator.render.DungeonAsciiRenderer` — renderer statico (`render(DungeonResult)` → `String`), **non** un `*Tool`. Disegna le stanze come box ASCII con corridoi, glifi `<`/`>` per ingresso/finale e un'etichetta di stats per stanza (`!N` main event, `eN` nemici, `^N` trappole, `$N` scrigni, `#<id>` id stanza); affianca alla mappa una legenda in colonna. `render(null)` → `IllegalArgumentException`.
+
+```java
+DungeonResult dungeon = DungeonGenerationTool.building()
+        .numberOfChambers(6).mainEvent().randomPositionMainEvent()
+        .numberOfEnemy(10).numberOfChests(3).haveTraps().generate();
+String map = DungeonAsciiRenderer.render(dungeon);
+```
+
+### `dicelauncher` — lancio di gruppi di dadi
+
+- `dicelauncher.DiceLauncherTool` — `building()` → `Builder` → `roll()` → `DiceRollResult`. **Unico tool che chiude con `roll()` invece di `generate()`** (non genera un elemento di dominio ma un tiro di dadi).
+  - **Gruppi di dadi**: `dice(int numberOfDice, int numberOfFaces)` oppure l'overload `dice(int, int, String code)` con un codice/etichetta opzionale. Invocabile più volte per accumulare gruppi eterogenei (es. `2d6` + `1d20`). Validazione **immediata** al momento dell'aggiunta: `numberOfDice < 1` o `numberOfFaces < 2` → `IllegalArgumentException`. `roll()` senza alcun gruppo → `IllegalStateException`.
+  - Ogni faccia è pescata in `[1, numberOfFaces]`; il `subtotal` di un gruppo è la somma dei suoi dadi, il `total` del result la somma di tutti i subtotali.
+- `dicelauncher.result.DiceRoll` — `record DiceRoll(int numberOfDice, int numberOfFaces, String code, List<Integer> results, int subtotal)`. **Non** implementa `GeneratedElementResult`: è un elemento interno al result, non un result a sé.
+- `dicelauncher.result.DiceRollResult` — `record DiceRollResult(List<DiceRoll> rolls, int total) implements GeneratedElementResult`, con `Builder` interno.
+
+```java
+DiceRollResult result = DiceLauncherTool.building()
+        .dice(2, 6).dice(1, 20, "attacco").roll();
+result.total();   // somma di tutti i dadi
+```
 
 Non ci sono database né configurazione esterna: le liste `.txt` sono l'unica origine dati per i nomi. Aggiungere un nome = aggiungere una riga al file corrispondente.
 

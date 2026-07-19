@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>fantasy-game-toolkit — Guida</title>
-<meta name="description" content="Guida d'uso del fantasy-game-toolkit: generatori Java per nomi di personaggi, gioielli, armi, armature, pozioni e buff/debuff, tutti con la stessa sintassi fluente building()…generate().">
+<meta name="description" content="Guida d'uso del fantasy-game-toolkit: generatori Java per nomi di personaggi, gioielli, armi, armature, pozioni, buff/debuff, dungeon e lanci di dadi, tutti con la stessa sintassi fluente building()…generate().">
 
 <style>
   :root {
@@ -298,6 +298,8 @@
       <a href="#pozioni">Pozioni</a>
       <a href="#personaggi">Personaggi</a>
       <a href="#buffdebuff">Buff &amp; Debuff</a>
+      <a href="#dungeon">Dungeon</a>
+      <a href="#dadi">Dadi</a>
       <h4>Riferimento</h4>
       <a href="#estendere">Estendere il toolkit</a>
       <a href="#nongoals">Cosa NON fa</a>
@@ -361,6 +363,16 @@
           <p>Bonus alle caratteristiche calibrati sulla rarità, con regole personalizzabili.</p>
           <a class="more" href="#buffdebuff">Vai al generatore →</a>
         </div>
+        <div class="card">
+          <h3>🗺️ Dungeon</h3>
+          <p>Stanze collegate con eventi, nemici, trappole e scrigni, più un renderer ASCII.</p>
+          <a class="more" href="#dungeon">Vai al generatore →</a>
+        </div>
+        <div class="card">
+          <h3>🎲 Dadi</h3>
+          <p>Lancio di gruppi di dadi (2d6, 1d20…) con subtotali e totale.</p>
+          <a class="more" href="#dadi">Vai al generatore →</a>
+        </div>
       </div>
     </section>
 
@@ -373,7 +385,7 @@
       <ul>
         <li>La classe si chiama <code>Xxx<strong>Tool</strong></code> ed espone un solo punto d'ingresso statico: <code>building()</code>.</li>
         <li><code>building()</code> restituisce un <strong>Builder</strong> fluente: aggiungi le opzioni che ti servono, <strong>in qualsiasi ordine</strong>.</li>
-        <li>La catena si chiude sempre con <code>generate()</code>, che restituisce un <strong>result immutabile</strong> (un <code>record</code>).</li>
+        <li>La catena si chiude con <code>generate()</code>, che restituisce un <strong>result immutabile</strong> (un <code>record</code>). L'unica eccezione è il <a href="#dadi">lancio di dadi</a>, che chiude con <code>roll()</code>.</li>
         <li>Ogni result implementa la marker interface comune <code>GeneratedElementResult</code>.</li>
       </ul>
       <div class="code">
@@ -425,6 +437,7 @@
             <tr><td><code>PotionType</code></td><td>BUFF, DEBUFF, HEALTH_REGENERATION, MANA_REGENERATION</td><td>Famiglie di pozione; la rigenerazione distingue vita e mana qui.</td></tr>
             <tr><td><code>Characteristic</code></td><td>STRENGTH, INTELLIGENCE, AGILITY, CHARISMA, RESISTANCE, STAMINA, LUCK</td><td>Le caratteristiche su cui agiscono i bonus.</td></tr>
             <tr><td><code>CharacterClass</code></td><td>WARRIOR, MAGE, THIEF, RANGER</td><td>Classi del personaggio; ognuna ha bonus tematici (come le razze).</td></tr>
+            <tr><td><code>ChamberType</code></td><td>ENTRY, STANDARD, FINAL</td><td>Ruolo di una stanza nel dungeon (ingresso, intermedia, finale).</td></tr>
           </tbody>
         </table>
       </div>
@@ -1058,6 +1071,179 @@ result.<span class="m">debuffs</span>();   <span class="c">// oggi sempre vuota 
         (<code>DebuffElement</code>, <code>StatusEffect</code>) ma oggi <code>debuffs()</code> è sempre
         una lista vuota. È un punto di estensione già predisposto.
       </div>
+    </section>
+
+    <hr>
+
+    <section id="dungeon">
+      <h2>🗺️ Dungeon</h2>
+      <p>
+        <code>DungeonGenerationTool</code> costruisce una mappa di <strong>stanze collegate</strong> e vi
+        distribuisce eventi principali, nemici, trappole e scrigni. Non usa rarità né buff/debuff, ma
+        segue lo stesso schema <code>building()</code> … <code>generate()</code> e restituisce un
+        <code>DungeonResult</code>. L'unica cosa obbligatoria è il <strong>numero di stanze</strong>.
+      </p>
+      <div class="code">
+        <div class="bar"><span class="file">Casi tipici</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="c">// dungeon minimo: solo il numero di stanze</span>
+<span class="t">DungeonGenerationTool</span>.<span class="m">building</span>().<span class="m">numberOfChambers</span>(<span class="s">5</span>).<span class="m">generate</span>();
+
+<span class="c">// con evento finale, evento in posizione casuale, nemici, scrigni e trappole</span>
+<span class="t">DungeonResult</span> dungeon = <span class="t">DungeonGenerationTool</span>.<span class="m">building</span>()
+        .<span class="m">numberOfChambers</span>(<span class="s">6</span>)
+        .<span class="m">mainEvent</span>()                  <span class="c">// codice automatico, nella stanza finale</span>
+        .<span class="m">randomPositionMainEvent</span>()    <span class="c">// codice automatico, stanza casuale (non l'ingresso)</span>
+        .<span class="m">numberOfEnemy</span>(<span class="s">10</span>)
+        .<span class="m">numberOfChests</span>(<span class="s">3</span>)
+        .<span class="m">haveTraps</span>()
+        .<span class="m">generate</span>();</pre>
+      </div>
+
+      <h3>Le stanze</h3>
+      <p>
+        <code>numberOfChambers(int)</code> è <strong>obbligatorio</strong> e deve essere almeno
+        <strong>2</strong> (ingresso + finale); mancante o inferiore a 2 → <code>IllegalStateException</code>.
+        La stanza <code>0</code> è sempre <code>ENTRY</code>, l'ultima <code>FINAL</code>, le intermedie
+        <code>STANDARD</code> (vedi <code>ChamberType</code>).
+      </p>
+
+      <h3>Gli eventi principali</h3>
+      <p>
+        Un <code>MainEvent</code> è identificato da un <code>code</code>. Puoi lasciare che il tool
+        generi un codice progressivo (<code>MainEvent_1</code>, <code>MainEvent_2</code>…) o passarne
+        uno esplicito. Ogni metodo è invocabile <strong>più volte</strong>: ogni chiamata aggiunge un evento.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metodo</th><th>Dove finisce l'evento</th></tr></thead>
+          <tbody>
+            <tr><td><code>mainEvent()</code> · <code>mainEvent(String code)</code></td><td><strong>Sempre nella stanza finale</strong></td></tr>
+            <tr><td><code>randomPositionMainEvent()</code> · <code>randomPositionMainEvent(String code)</code></td><td>Stanza casuale, <strong>diversa dall'ingresso</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Nemici, scrigni e trappole</h3>
+      <p>
+        Sono contatori distribuiti <strong>uniformemente</strong> tra le stanze (base uguale per tutte,
+        il resto a stanze casuali):
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metodo del builder</th><th>A cosa serve</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><code>numberOfEnemy(int)</code></td><td>Totale nemici da distribuire (negativo → eccezione)</td><td><code>0</code></td></tr>
+            <tr><td><code>numberOfChests(int)</code></td><td>Totale scrigni da distribuire (negativo → eccezione)</td><td><code>0</code></td></tr>
+            <tr><td><code>haveTraps()</code></td><td>Opt-in: genera un numero casuale di trappole in <code>[0, numberOfChambers]</code>, poi distribuito</td><td>nessuna trappola</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Le connessioni</h3>
+      <p>
+        Il tool costruisce prima uno <strong>spanning tree</strong> casuale che garantisce la
+        raggiungibilità di ogni stanza, poi aggiunge fino a <code>numberOfChambers / 2</code> connessioni
+        extra casuali. Ogni <code>ChamberConnection</code> è normalizzata (<code>from = min</code>,
+        <code>to = max</code>) e deduplicata, quindi A→B e B→A sono la stessa connessione.
+      </p>
+
+      <h3>Disegnare la mappa: <code>DungeonAsciiRenderer</code></h3>
+      <p>
+        <code>DungeonAsciiRenderer.render(DungeonResult)</code> è un renderer statico (non un
+        <code>*Tool</code>) che restituisce la mappa come <code>String</code> ASCII: stanze come box con
+        corridoi, glifi <code>&lt;</code>/<code>&gt;</code> per ingresso e finale e un'etichetta di stats
+        per stanza, affiancata a una legenda. <code>render(null)</code> → <code>IllegalArgumentException</code>.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Simbolo</th><th>Significato</th></tr></thead>
+          <tbody>
+            <tr><td><code>&lt;</code> · <code>&gt;</code></td><td>Stanza d'ingresso · stanza finale</td></tr>
+            <tr><td><code>!N</code></td><td>N eventi principali</td></tr>
+            <tr><td><code>eN</code></td><td>N nemici</td></tr>
+            <tr><td><code>^N</code></td><td>N trappole</td></tr>
+            <tr><td><code>$N</code></td><td>N scrigni</td></tr>
+            <tr><td><code>#&lt;id&gt;</code></td><td>Id della stanza</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="file">Render ASCII</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="t">String</span> map = <span class="t">DungeonAsciiRenderer</span>.<span class="m">render</span>(dungeon);
+<span class="t">System</span>.out.<span class="m">println</span>(map);</pre>
+      </div>
+
+      <h3>Tutte le opzioni del builder</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metodo del builder</th><th>A cosa serve</th><th>Obbligatorio</th></tr></thead>
+          <tbody>
+            <tr><td><code>numberOfChambers(int)</code></td><td>Numero di stanze (min 2)</td><td>Sì</td></tr>
+            <tr><td><code>mainEvent()</code> · <code>mainEvent(String)</code></td><td>Evento nella stanza finale (codice auto o esplicito)</td><td>No</td></tr>
+            <tr><td><code>randomPositionMainEvent()</code> · <code>randomPositionMainEvent(String)</code></td><td>Evento in stanza casuale non-ingresso</td><td>No</td></tr>
+            <tr><td><code>numberOfEnemy(int)</code></td><td>Totale nemici distribuiti</td><td>No · default <code>0</code></td></tr>
+            <tr><td><code>numberOfChests(int)</code></td><td>Totale scrigni distribuiti</td><td>No · default <code>0</code></td></tr>
+            <tr><td><code>haveTraps()</code></td><td>Abilita trappole casuali distribuite</td><td>No · default off</td></tr>
+            <tr><td><code>generate()</code></td><td>Produce il <code>DungeonResult</code></td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Risultato:
+        <code>DungeonResult(int numberOfChambers, List&lt;Chamber&gt; chambers, List&lt;ChamberConnection&gt; connections, int numberOfEnemies, int numberOfTraps, int numberOfChests)</code>,
+        dove <code>Chamber(int id, ChamberType type, List&lt;MainEvent&gt; mainEvents, int enemyCount, int trapCount, int chestCount)</code>.
+      </p>
+    </section>
+
+    <section id="dadi">
+      <h2>🎲 Dadi</h2>
+      <p>
+        <code>DiceLauncherTool</code> tira gruppi di dadi. È l'<strong>unico tool che chiude con
+        <code>roll()</code></strong> invece di <code>generate()</code>: non produce un elemento di
+        dominio ma un tiro. Aggiungi uno o più gruppi (es. <code>2d6</code> e <code>1d20</code>), poi
+        <code>roll()</code>.
+      </p>
+      <div class="code">
+        <div class="bar"><span class="file">Casi tipici</span><button class="copy" type="button">Copia</button></div>
+<pre><span class="c">// un solo gruppo: 3 dadi a 6 facce</span>
+<span class="t">DiceLauncherTool</span>.<span class="m">building</span>().<span class="m">dice</span>(<span class="s">3</span>, <span class="s">6</span>).<span class="m">roll</span>();
+
+<span class="c">// più gruppi, uno con un codice/etichetta</span>
+<span class="t">DiceRollResult</span> result = <span class="t">DiceLauncherTool</span>.<span class="m">building</span>()
+        .<span class="m">dice</span>(<span class="s">2</span>, <span class="s">6</span>)
+        .<span class="m">dice</span>(<span class="s">1</span>, <span class="s">20</span>, <span class="s">"attacco"</span>)
+        .<span class="m">roll</span>();
+
+result.<span class="m">total</span>();   <span class="c">// somma di tutti i dadi di tutti i gruppi</span></pre>
+      </div>
+      <p>
+        Ogni faccia è pescata in <code>[1, numberOfFaces]</code>. Il <code>subtotal</code> di un gruppo è
+        la somma dei suoi dadi; il <code>total</code> del result è la somma di tutti i subtotali. Il
+        <code>code</code> è opzionale ed è solo un'etichetta per ritrovare il gruppo nel result.
+      </p>
+      <div class="note warn">
+        <strong>Validazione immediata.</strong> All'aggiunta del gruppo, <code>numberOfDice &lt; 1</code>
+        o <code>numberOfFaces &lt; 2</code> → <code>IllegalArgumentException</code>. E <code>roll()</code>
+        senza alcun gruppo → <code>IllegalStateException</code>.
+      </div>
+      <h3>Tutte le opzioni del builder</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metodo del builder</th><th>A cosa serve</th><th>Obbligatorio</th></tr></thead>
+          <tbody>
+            <tr><td><code>dice(int numberOfDice, int numberOfFaces)</code></td><td>Aggiunge un gruppo di dadi</td><td>Sì · almeno un gruppo</td></tr>
+            <tr><td><code>dice(int numberOfDice, int numberOfFaces, String code)</code></td><td>Come sopra, con etichetta</td><td>Sì · almeno un gruppo</td></tr>
+            <tr><td><code>roll()</code></td><td>Tira i dadi e produce il <code>DiceRollResult</code></td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Risultato:
+        <code>DiceRollResult(List&lt;DiceRoll&gt; rolls, int total)</code>, dove
+        <code>DiceRoll(int numberOfDice, int numberOfFaces, String code, List&lt;Integer&gt; results, int subtotal)</code>.
+        Solo <code>DiceRollResult</code> implementa <code>GeneratedElementResult</code>; <code>DiceRoll</code>
+        è un elemento interno al result.
+      </p>
     </section>
 
     <hr>
